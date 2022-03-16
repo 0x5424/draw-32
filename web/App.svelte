@@ -1,15 +1,18 @@
 <script lang="ts">
-	/* hey, wanna hire me? */
+	import Coordinates from "./components/Coordinates.svelte";
 </script>
 
 <main>
 	<section>
-	   <h1>draw32</h1>
-   </section>
-
-  <section>
-    <h2>Canvas</h2>
+    <h1>draw32</h1>
+    <Coordinates />
   </section>
+
+  <div>
+    <table>
+      <caption>Canvas</caption>
+    </table>
+  </div>
 </main>
 
 <style>
@@ -24,7 +27,7 @@
 
     /* Grid */
     display: grid;
-    grid-template-columns: 1fr 3fr;
+    grid-template-columns: 240px 3fr;
     grid-template-rows: 1fr;
     column-gap: 2.25em;
     row-gap: normal;
@@ -39,15 +42,22 @@
     margin-bottom: 1rem;
   }
 
-  h2 {
+  caption {
     font-weight: 100;
     margin-top: 0px;
   }
 
+  div { margin: 0 auto auto; }
+
+  table {
+    box-shadow: inset 0 0 1.5px slategrey;
+    /* only while content is empty */
+    width: 100px;
+    height: 100px;
+  }
+
   section {
-    background-color: #eee; /* confirm layout */
-    height: inherit;
-    max-height: 100vh;
+    /*background-color: #eee;*/
   }
 
   @media (min-width: 240px) {
