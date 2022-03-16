@@ -1,5 +1,5 @@
-This doc is a high-level overview regarding the design decisions behind this repository.
-For setup instructions, please refer to the adjacent README.
+This doc is a high-level overview regarding the design decisions for this software.
+For setup instructions, please refer to the adjacent [`README`](./README.md).
 
 ## Intro
 
