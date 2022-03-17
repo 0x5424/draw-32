@@ -4,12 +4,12 @@
   import { fade } from 'svelte/transition';
   import { quadInOut as easing } from 'svelte/easing';
 	import Cursor from "./components/Cursor.svelte";
-  /* STORE IMPORTS */
+  /* IMPORTS (stores) */
   /* DECLARATIONS (local state) */
   let initialized = false;
   /* DECLARATIONS (local functions) */
   const initializeControls = (): void => { initialized = true };
-  /* STORES */
+  /* STORES (subscriptions) */
   /* LIFECYCLE */
 </script>
 

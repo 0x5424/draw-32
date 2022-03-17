@@ -5,24 +5,15 @@
   export let initializeControls: Function;
   /* IMPORTS */
   import Input from './Input.svelte';
-  /* STORE IMPORTS */
+  /* IMPORTS (stores) */
+  import { direction } from '../stores';
   /* DECLARATIONS (local state) */
-  let direction = '→'
-  /* STORES */
-  /* LIFECYCLE */
-
-  // todo:
-  // 1. Import/create stores (x+y)
-  // 2. Bind to store values
-  // 3. (HOC) Add rulers when updating cursors
-  // 4. Add commitJump when unfocusing
-
+  /* DECLARATIONS (local functions) */
   const onFormSubmit = ({ target }): void => {
     const data = new FormData(target);
 
     console.log(...data.entries()); // <- Formdata does not parse integers
   }
-
   /**
    * Hack to set direction text as an arrow.
    * If tab pressed assume select next form element, else we do nothing (preventDefault)
@@ -31,15 +22,24 @@
     const { key } = event;
     if (!/(Tab|Left|Down|Right|Up)$/.test(key)) return;
 
-    if (key === 'ArrowLeft') return direction = '←';
-    if (key === 'ArrowDown') return direction = '↓';
-    if (key === 'ArrowRight') return direction = '→';
-    if (key === 'ArrowUp') return direction = '↑';
+    if (key === 'ArrowLeft') return $direction = '←';
+    if (key === 'ArrowDown') return $direction = '↓';
+    if (key === 'ArrowRight') return $direction = '→';
+    if (key === 'ArrowUp') return $direction = '↑';
     if (key === 'Tab') { // <- Can remove once more form element added
       event.preventDefault();
       document.activeElement.blur();
     }
   }
+  /* STORES (subscriptions) */
+  /* LIFECYCLE */
+
+  // todo:
+  // 1. Import/create stores (x+y)
+  // 2. Bind to store values
+  // 3. (HOC) Add rulers when updating cursors
+  // 4. Add commitJump when unfocusing
+
 </script>
 
 <form on:change|once={initializeControls} on:submit|preventDefault={onFormSubmit}>
@@ -55,7 +55,7 @@
           name="cursor-dir"
           type="text"
           on:keydown={onKeydown}
-          bind:value={direction}
+          bind:value={$direction}
         >
       </span>
     </label>
