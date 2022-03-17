@@ -2,8 +2,10 @@
   /* NOTE: Only number support atm */
 
   export let key: string;
-  export let label: string;
+  export let label: string? = null;
   export let type: "number" | "text" = "number";
+  export let min: number = 1;
+  export let max: number = 999;
   export let defaultValue: number = 1; // TODO: Use store
 
   let value = defaultValue;
@@ -11,16 +13,18 @@
 
 <div>
   <label for={key}>
-    <span>
-      {label}<slot>
+    <span class:pad-left={type === "number"}>
+      {#if label}
+        {label}
+      {/if}<slot>
         {#if type === "number"}
           <input
             bind:value
             type="number"
             id={key}
             name={key}
-            min=1
-            max=999
+            {min}
+            {max}
           >
         {:else if type === "text"}
           <input bind:value type="text" id={key} name={key}>
@@ -41,7 +45,7 @@
     color: slategray;
   }
 
-  span { padding-left: 0.5rem; }
+  .pad-left { padding-left: 0.5rem; }
   span:focus-within {
     background-color: #fff;
     outline: 0.8px solid black;
@@ -52,8 +56,8 @@
   /* Note: styling only applies when no `slot` used */
   input {
     border: none;
-    min-width: 2.75rem; /* Fits 4 digits */
-    width: 2.75rem; /* TODO: Dynamic width; Maybe only possible with JS */
+    min-width: 2.3rem; /* Fits 3 digits */
+    width: 2.3rem; /* TODO: Dynamic width; Maybe only possible with JS */
     background-color: rgba(0,0,0, 0);
     outline: none;
     color: slategray;

@@ -3,7 +3,7 @@
   /* IMPORTS */
   import { fade } from 'svelte/transition';
   import { quadInOut as easing } from 'svelte/easing';
-	import Coordinates from "./components/Coordinates.svelte";
+	import Cursor from "./components/Cursor.svelte";
   /* STORE IMPORTS */
   /* DECLARATIONS (local state) */
   let initialized = false;
@@ -19,7 +19,7 @@
       <h1 out:fade={{ easing }}>draw32</h1>
     {/if}
 
-    <Coordinates {initializeControls} />
+    <Cursor {initializeControls} />
   </section>
 
   <div>
