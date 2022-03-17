@@ -2,6 +2,7 @@
   /* Display the coordinates of the cursor */
 
   /* PROPS */
+  export let initializeControls: Function;
   /* IMPORTS */
   import Input from './Input.svelte';
   /* STORE IMPORTS */
@@ -15,14 +16,14 @@
   // 3. (HOC) Add rulers when updating cursors
   // 4. Add commitJump when unfocusing
 
-  function onFormSubmit({ target }): void {
+  const onFormSubmit = ({ target }): void => {
     const data = new FormData(target);
 
-    console.log(...data.entries());
+    console.log(...data.entries()); // <- Formdata does not parse integers
   }
 </script>
 
-<form on:submit|preventDefault={onFormSubmit}>
+<form on:change|once={initializeControls} on:submit|preventDefault={onFormSubmit}>
   <Input label="X" key="cursor-x"/>
   <Input label="Y" key="cursor-y"/>
 
@@ -31,16 +32,13 @@
 
 <style>
   form {
-    font-family: monospace;
     display: grid;
     grid-template-columns: 1fr 1fr;
     box-shadow: inset 0 0 1.5px slategrey;
     background-color: #f4f4f4;
   }
 
-  form:focus-within {
-    outline: 1px solid black;
-  }
+  form:focus-within { outline: 0.8px solid black; }
 
   input[type="submit"] { display: none; }
 </style>

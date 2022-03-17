@@ -1,11 +1,25 @@
 <script lang="ts">
+  /* PROPS */
+  /* IMPORTS */
+  import { fade } from 'svelte/transition';
+  import { quadInOut as easing } from 'svelte/easing';
 	import Coordinates from "./components/Coordinates.svelte";
+  /* STORE IMPORTS */
+  /* DECLARATIONS (local state) */
+  let initialized = false;
+  /* DECLARATIONS (local functions) */
+  const initializeControls = (): void => { initialized = true };
+  /* STORES */
+  /* LIFECYCLE */
 </script>
 
 <main>
-	<section>
-    <h1>draw32</h1>
-    <Coordinates />
+	<section id="controls">
+    {#if !initialized}
+      <h1 out:fade={{ easing }}>draw32</h1>
+    {/if}
+
+    <Coordinates {initializeControls} />
   </section>
 
   <div>
@@ -23,7 +37,7 @@
     text-align: center;
     max-width: 240px;
     margin: 0;
-    border: 1px solid black;
+    box-shadow: inset 0 0 1.5px slategrey;
 
     /* Grid */
     display: grid;
@@ -56,9 +70,7 @@
     height: 100px;
   }
 
-  section {
-    /*background-color: #eee;*/
-  }
+  section { padding: 0.75em; }
 
   @media (min-width: 240px) {
     main { max-width: none; }
