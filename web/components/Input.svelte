@@ -2,16 +2,20 @@
   /* NOTE: Only number support atm */
 
   export let key: string;
+  export let value;
   export let label: string? = null;
-  export let type: "number" | "text" = "number";
-  export let min: number = 1;
-  export let max: number = 999;
-  export let defaultValue: number = 1; // TODO: Use store
 
-  let value = defaultValue;
+  /* TODO: Move to last-child selector, not working from Cursor; Unsure if svelte to blame */
+  export let lastElement: Boolean = false;
+
+  export let type: "number" | "text" = "number";
+  export let readonly: Boolean = false;
+  export let onKeydown: Function = () => {};
+
+  // let value = defaultValue;
 </script>
 
-<div>
+<div class:flex-grow={lastElement}>
   <label for={key}>
     <span class:pad-left={type === "number"}>
       {#if label}
@@ -20,14 +24,24 @@
         {#if type === "number"}
           <input
             bind:value
+            on:keydown={onKeydown}
             type="number"
             id={key}
             name={key}
-            {min}
-            {max}
+            min=1
+            max=999
+            {readonly}
           >
         {:else if type === "text"}
-          <input bind:value type="text" id={key} name={key}>
+          <input
+            bind:value
+            on:keydown={onKeydown}
+            class:one-char={`${value}`.length <= 1}
+            type="text"
+            id={key}
+            name={key}
+            {readonly}
+          >
         {/if}
       </slot>
     </span>
@@ -35,7 +49,7 @@
 </div>
 
 <style>
-  div { padding: 0.75rem; }
+  div { padding: 0.75rem 0 0.75rem 0.75rem; }
 
   label {
     display: flex;
@@ -45,7 +59,12 @@
     color: slategray;
   }
 
-  .pad-left { padding-left: 0.5rem; }
+  .flex-grow { flex-grow: 1; }
+  .pad-left { padding-left: 0.5rem; } /* Provides space for label text */
+  .one-char {
+    box-sizing: content-box;
+    width: 15px;
+  }
   span:focus-within {
     background-color: #fff;
     outline: 0.8px solid black;
@@ -56,11 +75,13 @@
   /* Note: styling only applies when no `slot` used */
   input {
     border: none;
-    min-width: 2.3rem; /* Fits 3 digits */
-    width: 2.3rem; /* TODO: Dynamic width; Maybe only possible with JS */
     background-color: rgba(0,0,0, 0);
     outline: none;
     color: slategray;
+  }
+  input[type="number"] {
+    min-width: 2.3rem; /* Fits 3 digits */
+    width: 2.3rem; /* TODO: Dynamic width; Maybe only possible with JS */
   }
 
   input:focus { color: black; }

@@ -6,7 +6,7 @@
   /* IMPORTS */
   import Input from './Input.svelte';
   /* IMPORTS (stores) */
-  import { direction } from '../stores';
+  import { direction, cursorX, cursorY } from '../stores';
   /* DECLARATIONS (local state) */
   /* DECLARATIONS (local functions) */
   const onFormSubmit = ({ target }): void => {
@@ -43,23 +43,9 @@
 </script>
 
 <form on:change|once={initializeControls} on:submit|preventDefault={onFormSubmit}>
-  <Input label="X" key="cursor-x"/>
-  <Input label="Y" key="cursor-y"/>
-  <!-- <Input key="cursor-dir" type="text"> -->
-  <div>
-    <label for="cursor-dir">
-      <span>
-        <input
-          readonly
-          id="cursor-dir"
-          name="cursor-dir"
-          type="text"
-          on:keydown={onKeydown}
-          bind:value={$direction}
-        >
-      </span>
-    </label>
-  </div>
+  <Input label="X" key="cursor-x" bind:value={$cursorX}/>
+  <Input label="Y" key="cursor-y" bind:value={$cursorY}/>
+  <Input key="cursor-dir" type="text" bind:value={$direction} {onKeydown} lastElement/>
 
   <input type="submit">
 </form>
@@ -68,39 +54,11 @@
   form {
     display: flex;
     align-items: center;
+    justify-content: center;
     box-shadow: inset 0 0 1.5px slategrey;
     background-color: #f4f4f4;
   }
-
   form:focus-within { outline: 0.8px solid black; }
-
-  /* TODO: fix value bindings for child/slotted inputs */
-  label {
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
-    font-family: monospace;
-    color: slategray;
-  }
-
-  span:focus-within {
-    background-color: #fff;
-    outline: 0.8px solid black;
-    box-shadow: inset 0 0 1.5px slategrey;
-    color: black;
-  }
-
-  input {
-    border: none;
-    box-sizing: content-box;
-    width: 15px;
-    background-color: rgba(0,0,0, 0);
-    outline: none;
-    color: slategray;
-  }
-
-  input:focus { color: black; }
-  /* end todo */
 
   input[type="submit"] { display: none; }
 </style>
