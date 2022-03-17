@@ -24,7 +24,7 @@
 
 <form on:submit|preventDefault={onFormSubmit}>
   <Input label="X" key="cursor-x"/>
-  <Input label="Y" key="cursor-y" defaultValue={26}/>
+  <Input label="Y" key="cursor-y"/>
 
   <input type="submit">
 </form>

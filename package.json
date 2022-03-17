@@ -1,5 +1,5 @@
 {
-  "name": "draw-32",
+  "name": "draw32",
   "version": "0.0.1",
   "description": "Create images with very small file sizes.",
   "scripts": {
@@ -30,9 +30,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fire-pls/draw-32.git"
+    "url": "git+https://github.com/fire-pls/draw32.git"
   },
   "author": "Trevor <trevor@osrs-stat.com>",
   "license": "MIT",
-  "homepage": "https://github.com/fire-pls/draw-32#readme"
+  "homepage": "https://github.com/fire-pls/draw32#readme"
 }

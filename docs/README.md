@@ -1,6 +1,6 @@
-# `draw-32`
+# `draw32`
 
-This markdown file will contain instructions for setting up the `draw-32` instruction builder SPA.
+This markdown file will contain instructions for setting up the `draw32` instruction builder SPA.
 For design philosophy & a further technical breakdown, see the adjacent [`ABSTRACT.md`](./ABSTRACT.md)
 
 The SPA itself uses the [Svelte](https://svelte.dev/docs) framework. Please refer to their documentation for more info on the project structure.
