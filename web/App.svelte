@@ -4,6 +4,7 @@
   import { fade } from 'svelte/transition';
   import { quadInOut as easing } from 'svelte/easing';
 	import Cursor from "./components/Cursor.svelte";
+  import Rotation from "./components/Rotation.svelte";
   /* IMPORTS (stores) */
   /* DECLARATIONS (local state) */
   let initialized = false;
@@ -14,12 +15,13 @@
 </script>
 
 <main>
-	<section id="controls">
+	<section>
     {#if !initialized}
       <h1 out:fade={{ easing }}>draw32</h1>
     {/if}
 
     <Cursor {initializeControls} />
+    <Rotation />
   </section>
 
   <div>
@@ -52,8 +54,7 @@
     text-transform: uppercase;
     font-size: 3em;
     font-weight: 100;
-    margin-top: 0px;
-    margin-bottom: 1rem;
+    margin: 0;
   }
 
   caption {
@@ -65,12 +66,17 @@
 
   table {
     box-shadow: inset 0 0 1.5px slategrey;
-    /* only while content is empty */
+    /* TODO: Remove once table ready */
     width: 100px;
     height: 100px;
   }
 
-  section { padding: 0.75em; }
+  section {
+    display: flex;
+    flex-direction: column;
+    row-gap: 1rem;
+    padding: 0.75em;
+  }
 
   @media (min-width: 240px) {
     main { max-width: none; }

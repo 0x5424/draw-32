@@ -1,22 +1,19 @@
 <script lang="ts">
-  /* NOTE: Only number support atm */
-
   export let key: string;
   export let value;
   export let label: string? = null;
 
   /* TODO: Move to last-child selector, not working from Cursor; Unsure if svelte to blame */
   export let lastElement: Boolean = false;
+  export let centered: Boolean = true;
 
   export let type: "number" | "text" = "number";
   export let readonly: Boolean = false;
   export let onKeydown: Function = () => {};
-
-  // let value = defaultValue;
 </script>
 
 <div class:flex-grow={lastElement}>
-  <label for={key}>
+  <label for={key} class:justify-left={!centered}>
     <span class:pad-left={type === "number"}>
       {#if label}
         {label}
@@ -59,6 +56,7 @@
     color: slategray;
   }
 
+  .justify-left { justify-content: left; }
   .flex-grow { flex-grow: 1; }
   .pad-left { padding-left: 0.5rem; } /* Provides space for label text */
   .one-char {

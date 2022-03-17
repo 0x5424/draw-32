@@ -18,25 +18,18 @@
    * Hack to set direction text as an arrow.
    * If tab pressed assume select next form element, else we do nothing (preventDefault)
    */
-  const onKeydown = (event): void => {
-    const { key } = event;
-    if (!/(Tab|Left|Down|Right|Up)$/.test(key)) return;
+  const onKeydown = ({ key }): void => {
+    if (!/(Left|Down|Right|Up)$/.test(key)) return;
 
     if (key === 'ArrowLeft') return $direction = '←';
     if (key === 'ArrowDown') return $direction = '↓';
     if (key === 'ArrowRight') return $direction = '→';
     if (key === 'ArrowUp') return $direction = '↑';
-    if (key === 'Tab') { // <- Can remove once more form element added
-      event.preventDefault();
-      document.activeElement.blur();
-    }
   }
   /* STORES (subscriptions) */
   /* LIFECYCLE */
 
   // todo:
-  // 1. Import/create stores (x+y)
-  // 2. Bind to store values
   // 3. (HOC) Add rulers when updating cursors
   // 4. Add commitJump when unfocusing
 
@@ -45,7 +38,7 @@
 <form on:change|once={initializeControls} on:submit|preventDefault={onFormSubmit}>
   <Input label="X" key="cursor-x" bind:value={$cursorX}/>
   <Input label="Y" key="cursor-y" bind:value={$cursorY}/>
-  <Input key="cursor-dir" type="text" bind:value={$direction} {onKeydown} lastElement/>
+  <Input key="cursor-dir" type="text" bind:value={$direction} {onKeydown} lastElement readonly/>
 
   <input type="submit">
 </form>
