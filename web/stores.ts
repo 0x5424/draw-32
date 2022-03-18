@@ -14,7 +14,7 @@ export const directionText = derived(direction, $direction => {
   throw new Error('invalid direction set')
 });
 
-export const cw = writable(false)
+export const cw = writable(false);
 export const rotation = derived([directionText, cw], ([$directionText, $cw]) => {
   return {
     LEFT: {true: '↖', false: '↙'},
@@ -23,3 +23,5 @@ export const rotation = derived([directionText, cw], ([$directionText, $cw]) => 
     UP: {true: '↗', false: '↖'},
   }[$directionText][`${$cw}`]
 });
+
+export const drawMode = writable('pattern');

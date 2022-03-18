@@ -5,22 +5,19 @@
   /* IMPORTS */
   import Input from './Input.svelte';
   /* IMPORTS (stores) */
-  import { cw, rotation, directionText } from '../stores';
+  import { cw, rotation, drawMode } from '../stores';
   /* DECLARATIONS (local state) */
   /* DECLARATIONS (local functions) */
   const onFormSubmit = ({ target }): void => {
     const data = new FormData(target);
 
-    console.log(...data.entries()); // <- Formdata does not parse integers
+    console.log(...data.entries());
   }
-
-  /* TODO: Move draw logic to separate form when generic Form.svelte ready */
-  let drawMode = 'pattern'
 
   const onDrawMode = ({ key }) => {
     if (!/(Left|Down|Right|Up)$/.test(key)) return;
 
-    drawMode = drawMode === 'pattern' ? 'insert' : 'pattern'
+    $drawMode = $drawMode === 'pattern' ? 'insert' : 'pattern'
   }
 
   /* Keep tab behavior--select next form element */
@@ -35,13 +32,13 @@
 
 <div>
   <form on:submit|preventDefault={onFormSubmit}>
-    <Input readonly label="r" type="text" key="rotation" value={$rotation} {onKeydown} noPad />
+    <Input readonly label="r"  type="text" key="rotation" value={$rotation} {onKeydown} noPad />
 
     <input type="submit">
   </form>
 
   <form on:submit|preventDefault={onFormSubmit}>
-    <Input readonly type="text" key="draw-mode" value={drawMode} onKeydown={onDrawMode} noPad />
+    <Input readonly type="text" key="draw-mode" value={$drawMode} onKeydown={onDrawMode} noPad />
 
     <input type="submit">
   </form>
