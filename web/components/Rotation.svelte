@@ -1,5 +1,5 @@
 <script lang="ts">
-  /* Display the direction the */
+  /* Angle the cursor will drift as it draws */
 
   /* PROPS */
   /* IMPORTS */
@@ -14,14 +14,34 @@
     console.log(...data.entries()); // <- Formdata does not parse integers
   }
 
-  const onKeydown = ({ key }) => { $cw = !$cw }
+  /* TODO: Move draw logic to separate form when generic Form.svelte ready */
+  let drawMode = 'pattern'
+
+  const onDrawMode = ({ key }) => {
+    if (!/(Left|Down|Right|Up)$/.test(key)) return;
+
+    drawMode = drawMode === 'pattern' ? 'insert' : 'pattern'
+  }
+
+  /* Keep tab behavior--select next form element */
+  const onKeydown = ({ key }) => {
+    if (!/(Left|Down|Right|Up)$/.test(key)) return;
+
+    $cw = !$cw
+  }
   /* STORES (subscriptions) */
   /* LIFECYCLE */
 </script>
 
 <div>
   <form on:submit|preventDefault={onFormSubmit}>
-    <Input readonly type="text" key="rotation" value={$rotation} {onKeydown} centered={false}/>
+    <Input readonly label="r" type="text" key="rotation" value={$rotation} {onKeydown} noPad />
+
+    <input type="submit">
+  </form>
+
+  <form on:submit|preventDefault={onFormSubmit}>
+    <Input readonly type="text" key="draw-mode" value={drawMode} onKeydown={onDrawMode} noPad />
 
     <input type="submit">
   </form>
@@ -30,7 +50,8 @@
 <style>
   div {
     display: grid;
-    grid-template-columns: 50px 1fr;
+    grid-template-columns: 2fr 3fr;
+    column-gap: 2.25em;
   }
 
   form {

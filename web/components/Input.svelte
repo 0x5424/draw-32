@@ -3,18 +3,21 @@
   export let value;
   export let label: string? = null;
 
-  /* TODO: Move to last-child selector, not working from Cursor; Unsure if svelte to blame */
-  export let lastElement: Boolean = false;
-  export let centered: Boolean = true;
+  /* TODO: R&D to see if this is best way to handle conditional styling in svelte/vue */
+  export let flexGrow: Boolean = false; // Expand this input to remaining free space (last-child on parent element not working)
+  export let noPad: Boolean = false; // Remove left padding on main div (forms with 1 child will use this)
 
+  /* HTML values */
   export let type: "number" | "text" = "number";
   export let readonly: Boolean = false;
+
+  /* Handlers */
   export let onKeydown: Function = () => {};
 </script>
 
-<div class:flex-grow={lastElement}>
-  <label for={key} class:justify-left={!centered}>
-    <span class:pad-left={type === "number"}>
+<div class:flex-grow={flexGrow} class:no-pad-left={noPad}>
+  <label for={key}>
+    <span class:pad-left={!!label}>
       {#if label}
         {label}
       {/if}<slot>
@@ -34,6 +37,7 @@
             bind:value
             on:keydown={onKeydown}
             class:one-char={`${value}`.length <= 1}
+            class:draw-input={value === 'pattern' || value === 'insert'}
             type="text"
             id={key}
             name={key}
@@ -56,9 +60,9 @@
     color: slategray;
   }
 
-  .justify-left { justify-content: left; }
   .flex-grow { flex-grow: 1; }
   .pad-left { padding-left: 0.5rem; } /* Provides space for label text */
+  .no-pad-left { padding-left: 0; }
   .one-char {
     box-sizing: content-box;
     width: 15px;
@@ -69,6 +73,9 @@
     box-shadow: inset 0 0 1.5px slategrey;
     color: black;
   }
+
+  /* TODO: Something more elegant... Styling inputs is a nightmare */
+  .draw-input { width: 65px; }
 
   /* Note: styling only applies when no `slot` used */
   input {

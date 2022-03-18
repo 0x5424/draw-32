@@ -12,6 +12,7 @@
   const onFormSubmit = ({ target }): void => {
     const data = new FormData(target);
 
+    console.log('Stores:', [$cursorX, $cursorY, $direction])
     console.log(...data.entries()); // <- Formdata does not parse integers
   }
   /**
@@ -36,9 +37,9 @@
 </script>
 
 <form on:change|once={initializeControls} on:submit|preventDefault={onFormSubmit}>
-  <Input label="X" key="cursor-x" bind:value={$cursorX}/>
-  <Input label="Y" key="cursor-y" bind:value={$cursorY}/>
-  <Input key="cursor-dir" type="text" bind:value={$direction} {onKeydown} lastElement readonly/>
+  <Input label="X" key="cursor-x" bind:value={$cursorX} />
+  <Input label="Y" key="cursor-y" bind:value={$cursorY} />
+  <Input key="cursor-dir" type="text" bind:value={$direction} {onKeydown} flexGrow readonly/>
 
   <input type="submit">
 </form>
