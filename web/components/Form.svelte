@@ -2,21 +2,21 @@
   /* Used to wrap Input elements in dedicated form */
 
   /* PROPS */
-  export let flexForm: Boolean = false;
+  export let flexForm = false
   export let onFormSubmit = ({ target }): void => {
-    const data = new FormData(target);
-    console.warn('NOTE: No form handler supplied.');
+    const data = new FormData(target)
+    console.warn('NOTE: No form handler supplied.')
 
-    console.log(...data.entries());
+    console.log(...data.entries())
   }
   /* IMPORTS */
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher } from 'svelte'
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher()
 
   /* TODO: Revisit why this only works for 1 component (w/ 2 Forms, second one doesn't trigger change) */
   const dispatchChange = () => {
-    dispatch('change');
+    dispatch('change')
   }
   /* IMPORTS (stores) */
   /* DECLARATIONS (local state) */

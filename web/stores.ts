@@ -1,20 +1,20 @@
-import { writable, derived } from "svelte/store";
+import { writable, derived } from 'svelte/store'
 
 // export const currentCursor = writable([-1, -1]);
-export const cursorX = writable(1);
-export const cursorY = writable(1);
-export const cursor = derived([cursorX, cursorY], ([$cursorX, $cursorY]) => $cursorX && $cursorY && [$cursorX, $cursorY]);
+export const cursorX = writable(1)
+export const cursorY = writable(1)
+export const cursor = derived([cursorX, cursorY], ([$cursorX, $cursorY]) => $cursorX && $cursorY && [$cursorX, $cursorY])
 
-export const direction = writable('→');
+export const direction = writable('→')
 export const directionText = derived(direction, $direction => {
-  if ($direction === '←') return 'LEFT';
-  if ($direction === '↓') return 'DOWN';
-  if ($direction === '→') return 'RIGHT';
-  if ($direction === '↑') return 'UP';
+  if ($direction === '←') return 'LEFT'
+  if ($direction === '↓') return 'DOWN'
+  if ($direction === '→') return 'RIGHT'
+  if ($direction === '↑') return 'UP'
   throw new Error('invalid direction set')
-});
+})
 
-export const cw = writable(false);
+export const cw = writable(false)
 export const rotation = derived([directionText, cw], ([$directionText, $cw]) => {
   return {
     LEFT: {true: '↖', false: '↙'},
@@ -22,6 +22,6 @@ export const rotation = derived([directionText, cw], ([$directionText, $cw]) => 
     RIGHT: {true: '↘', false: '↗'},
     UP: {true: '↗', false: '↖'},
   }[$directionText][`${$cw}`]
-});
+})
 
-export const drawMode = writable('pattern');
+export const drawMode = writable('pattern')

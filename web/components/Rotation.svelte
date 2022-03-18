@@ -3,14 +3,14 @@
 
   /* PROPS */
   /* IMPORTS */
-  import Form from './Form.svelte';
-  import Input from './Input.svelte';
+  import Form from './Form.svelte'
+  import Input from './Input.svelte'
   /* IMPORTS (stores) */
-  import { cw, rotation, drawMode } from '../stores';
+  import { cw, rotation } from '../stores'
   /* DECLARATIONS (local state) */
   /* DECLARATIONS (local functions) */
   const onKeydown = ({ key }) => {
-    if (!/(Left|Down|Right|Up)$/.test(key)) return;
+    if (!/(Left|Down|Right|Up)$/.test(key)) return
 
     $cw = !$cw
   }

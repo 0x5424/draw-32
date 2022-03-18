@@ -1,18 +1,18 @@
 <script lang="ts">
-  export let key: string;
-  export let value;
-  export let label: string? = null;
+  export let key: string
+  export let value: string | number
+  export let label: string | null = null
 
   /* TODO: R&D to see if this is best way to handle conditional styling in svelte/vue */
-  export let flexGrow: Boolean = false; // Expand this input to remaining free space (last-child on parent element not working)
-  export let noPad: Boolean = false; // Remove left padding on main div (forms with 1 child will use this)
+  export let flexGrow = false // Expand this input to remaining free space (last-child on parent element not working)
+  export let noPad = false // Remove left padding on main div (forms with 1 child will use this)
 
   /* HTML values */
-  export let type: "number" | "text" = "number";
-  export let readonly: Boolean = false;
+  export let type: 'number' | 'text' = 'number'
+  export let readonly = false
 
   /* Handlers */
-  export let onKeydown: Function = () => {};
+  export let onKeydown = () => {/* Custom logic for manual inputs */}
 </script>
 
 <div class:flex-grow={flexGrow} class:no-pad-left={noPad}>
@@ -21,7 +21,7 @@
       {#if label}
         {label}
       {/if}<slot>
-        {#if type === "number"}
+        {#if type === 'number'}
           <input
             bind:value
             on:keydown={onKeydown}
@@ -30,9 +30,10 @@
             name={key}
             min=1
             max=999
+            pattern="\d*"
             {readonly}
           >
-        {:else if type === "text"}
+        {:else if type === 'text'}
           <input
             bind:value
             on:keydown={onKeydown}

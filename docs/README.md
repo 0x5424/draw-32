@@ -8,7 +8,6 @@ The remaining documentation here will largely pertain to the SPA, with a few sec
 The SPA itself uses the [Svelte](https://svelte.dev/docs) framework. Please refer to their documentation for more info on the project structure.
 
 ## Dependencies
-
 The project is written in TypeScript. It is installed via the `npm` package manager, which is reliant on `node` being available on the host machine.
 
 ## Setup
@@ -18,11 +17,18 @@ The app can then run locally with `npm run dev`[^1].
 
 [^1]: MacOS users may need to [specify a different port](https://github.com/lukeed/sirv/issues/124) when running the app.
 
-## Usage
+<!-- ## API -->
 
+<!-- ## Usage -->
+
+## Browser Support
 Currently, the app is targeting browsers in environments with full keyboard access. Namely, it currently depends on the *arrow keys* to modify some form values.
 
 Depending on the complexity of the desired image and canvas size, browsers/tablets will naturally be a better fit for using the software.
+Long-term, the SPA aims to support a touch/stylus "artist mode", intended to abstract away the internals surrounding cursor, rotation, etc[^1]--providing more creative freedom to artists.
+
+[^1]: Artist mode specifications are not yet defined. Discussion contributions welcome
+
 
 <!-- ## Testing -->
 

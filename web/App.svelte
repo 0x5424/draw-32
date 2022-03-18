@@ -1,16 +1,17 @@
 <script lang="ts">
   /* PROPS */
   /* IMPORTS */
-  import { fade } from 'svelte/transition';
-  import { quadInOut as easing } from 'svelte/easing';
-	import Cursor from "./components/Cursor.svelte";
-  import Rotation from "./components/Rotation.svelte";
-  import DrawMode from "./components/DrawMode.svelte";
+  import { fade } from 'svelte/transition'
+  import { quadInOut as easing } from 'svelte/easing'
+import Cursor from './components/Cursor.svelte'
+  import Rotation from './components/Rotation.svelte'
+  import DrawMode from './components/DrawMode.svelte'
   /* IMPORTS (stores) */
+  import { drawMode } from './stores'
   /* DECLARATIONS (local state) */
-  let initialized = false;
+  let initialized = false
   /* DECLARATIONS (local functions) */
-  const initializeControls = (): void => { initialized = true };
+  const initializeControls = (): void => { initialized = true }
   /* STORES (subscriptions) */
   /* LIFECYCLE */
 </script>
@@ -26,6 +27,13 @@
       <Rotation />
       <DrawMode />
     </div>
+
+    <hr />
+    {#if $drawMode === 'pattern'}
+      <span in:fade={{ duration: 200 }}>DrawControls: Pattern</span>
+    {:else if $drawMode === 'insert'}
+      <span in:fade={{ duration: 200 }}>DrawControls: Insert</span>
+    {/if}
   </section>
 
   <section class="canvas-container">
@@ -60,6 +68,8 @@
     font-weight: 100;
     margin: 0;
   }
+
+  hr { width: 80%; }
 
   caption {
     font-weight: 100;
