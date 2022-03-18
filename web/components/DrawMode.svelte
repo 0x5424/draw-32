@@ -6,21 +6,20 @@
   import Form from './Form.svelte';
   import Input from './Input.svelte';
   /* IMPORTS (stores) */
-  import { cw, rotation, drawMode } from '../stores';
+  import { drawMode } from '../stores';
   /* DECLARATIONS (local state) */
   /* DECLARATIONS (local functions) */
   const onKeydown = ({ key }) => {
     if (!/(Left|Down|Right|Up)$/.test(key)) return;
 
-    $cw = !$cw
+    $drawMode = $drawMode === 'pattern' ? 'insert' : 'pattern'
   }
-
   /* STORES (subscriptions) */
   /* LIFECYCLE */
 </script>
 
 <Form>
-  <Input readonly label="r"  type="text" key="rotation" value={$rotation} {onKeydown} noPad />
+  <Input readonly type="text" key="draw-mode" value={$drawMode} {onKeydown} noPad />
 </Form>
 
 <style></style>

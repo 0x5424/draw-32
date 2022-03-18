@@ -5,6 +5,7 @@
   import { quadInOut as easing } from 'svelte/easing';
 	import Cursor from "./components/Cursor.svelte";
   import Rotation from "./components/Rotation.svelte";
+  import DrawMode from "./components/DrawMode.svelte";
   /* IMPORTS (stores) */
   /* DECLARATIONS (local state) */
   let initialized = false;
@@ -21,14 +22,17 @@
     {/if}
 
     <Cursor {initializeControls} />
-    <Rotation />
+    <div class="rotation-draw">
+      <Rotation />
+      <DrawMode />
+    </div>
   </section>
 
-  <div>
+  <section class="canvas-container">
     <table>
       <caption>Canvas</caption>
     </table>
-  </div>
+  </section>
 </main>
 
 <style>
@@ -62,7 +66,11 @@
     margin-top: 0px;
   }
 
-  div { margin: 0 auto auto; }
+  .rotation-draw {
+    display: grid;
+    grid-template-columns: 2fr 3fr;
+    column-gap: 2.25em;
+  }
 
   table {
     box-shadow: inset 0 0 1.5px slategrey;
@@ -71,6 +79,7 @@
     height: 100px;
   }
 
+  section.canvas-container { margin: 0 auto auto; }
   section {
     display: flex;
     flex-direction: column;
