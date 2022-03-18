@@ -3,17 +3,12 @@
 
   /* PROPS */
   /* IMPORTS */
+  import Form from './Form.svelte';
   import Input from './Input.svelte';
   /* IMPORTS (stores) */
   import { cw, rotation, drawMode } from '../stores';
   /* DECLARATIONS (local state) */
   /* DECLARATIONS (local functions) */
-  const onFormSubmit = ({ target }): void => {
-    const data = new FormData(target);
-
-    console.log(...data.entries());
-  }
-
   const onDrawMode = ({ key }) => {
     if (!/(Left|Down|Right|Up)$/.test(key)) return;
 
@@ -26,22 +21,19 @@
 
     $cw = !$cw
   }
+
   /* STORES (subscriptions) */
   /* LIFECYCLE */
 </script>
 
 <div>
-  <form on:submit|preventDefault={onFormSubmit}>
+  <Form>
     <Input readonly label="r"  type="text" key="rotation" value={$rotation} {onKeydown} noPad />
+  </Form>
 
-    <input type="submit">
-  </form>
-
-  <form on:submit|preventDefault={onFormSubmit}>
+  <Form>
     <Input readonly type="text" key="draw-mode" value={$drawMode} onKeydown={onDrawMode} noPad />
-
-    <input type="submit">
-  </form>
+  </Form>
 </div>
 
 <style>
@@ -50,12 +42,4 @@
     grid-template-columns: 2fr 3fr;
     column-gap: 2.25em;
   }
-
-  form {
-    box-shadow: inset 0 0 1.5px slategrey;
-    background-color: #f4f4f4;
-  }
-  form:focus-within { outline: 0.8px solid black; }
-
-  input[type="submit"] { display: none; }
 </style>
