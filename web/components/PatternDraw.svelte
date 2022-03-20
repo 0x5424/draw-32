@@ -1,5 +1,5 @@
 <script lang="ts">
-  /* Angle the cursor will drift as it draws */
+  /* Values to draw a "pattern" */
 
   /* PROPS */
   /* IMPORTS */

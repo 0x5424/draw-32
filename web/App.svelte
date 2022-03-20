@@ -7,6 +7,7 @@
   import Rotation from './components/Rotation.svelte'
   import DrawMode from './components/DrawMode.svelte'
   import PatternDraw from './components/PatternDraw.svelte'
+  import InsertDraw from './components/InsertDraw.svelte'
   /* IMPORTS (stores) */
   import { drawMode } from './stores'
   /* DECLARATIONS (local state) */
@@ -35,7 +36,7 @@
         <PatternDraw />
       </div>
     {:else if $drawMode === 'insert'}
-      <span in:fade={{ duration: 200 }}>DrawControls: Insert</span>
+        <InsertDraw />
     {/if}
   </section>
 
