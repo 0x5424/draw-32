@@ -29,6 +29,9 @@ Long-term, the SPA aims to support a touch/stylus "artist mode", intended to abs
 
 [^1]: Artist mode specifications are not yet defined. Discussion contributions welcome
 
+- Unfortunately, the `PatternDraw` component is failing to register onSubmit events with 100% reproducability on Safari. Additional debugging is necessary to create a full bug report to upstream maintainers.
+  - The cause is confirmed to only happen when the `Form` submit input (only for that component) has `display: none`. Does not happen on Chromium
+  - Current workaround is by using the [`accesskey`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-accesskey) directive for that form.
 
 <!-- ## Testing -->
 

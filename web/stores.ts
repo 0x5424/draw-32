@@ -25,3 +25,11 @@ export const rotation = derived([directionText, cw], ([$directionText, $cw]) => 
 })
 
 export const drawMode = writable('pattern')
+
+/* Pattern controls */
+export const patternOneLength = writable(1)
+export const patternTwoLength = writable(2)
+export const rawPattern = writable('')
+
+/* Insert controls */
+export const insertLength = writable(1)

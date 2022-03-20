@@ -36,7 +36,9 @@
         <PatternDraw />
       </div>
     {:else if $drawMode === 'insert'}
+      <div in:fade={{ duration: 200 }}>
         <InsertDraw />
+      </div>
     {/if}
   </section>
 
