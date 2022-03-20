@@ -9,6 +9,7 @@
   /* IMPORTS (stores) */
   import { direction, cursorX, cursorY } from '../stores'
   /* DECLARATIONS (local state) */
+  const formId = 'form-cursor'
   /* DECLARATIONS (local functions) */
   /**
    * Hack to set direction text as an arrow.
@@ -30,10 +31,10 @@
   // 4. Add commitJump when unfocusing
 </script>
 
-<Form flexForm on:change|once={initializeControls}>
-  <Input label="X" key="cursor-x" bind:value={$cursorX} />
-  <Input label="Y" key="cursor-y" bind:value={$cursorY} />
-  <Input key="cursor-dir" type="text" bind:value={$direction} {onKeydown} flexGrow readonly/>
+<Form id={formId} flexForm on:change|once={initializeControls}>
+  <Input {formId} label="X" key="cursor-x" bind:value={$cursorX} />
+  <Input {formId} label="Y" key="cursor-y" bind:value={$cursorY} />
+  <Input readonly {formId} key="cursor-dir" type="text" bind:value={$direction} {onKeydown} flexGrow oneChar/>
 </Form>
 
 <style></style>

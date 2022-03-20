@@ -3,9 +3,10 @@
   /* IMPORTS */
   import { fade } from 'svelte/transition'
   import { quadInOut as easing } from 'svelte/easing'
-import Cursor from './components/Cursor.svelte'
+  import Cursor from './components/Cursor.svelte'
   import Rotation from './components/Rotation.svelte'
   import DrawMode from './components/DrawMode.svelte'
+  import PatternDraw from './components/PatternDraw.svelte'
   /* IMPORTS (stores) */
   import { drawMode } from './stores'
   /* DECLARATIONS (local state) */
@@ -30,7 +31,9 @@ import Cursor from './components/Cursor.svelte'
 
     <hr />
     {#if $drawMode === 'pattern'}
-      <span in:fade={{ duration: 200 }}>DrawControls: Pattern</span>
+      <div in:fade={{ duration: 200 }}>
+        <PatternDraw />
+      </div>
     {:else if $drawMode === 'insert'}
       <span in:fade={{ duration: 200 }}>DrawControls: Insert</span>
     {/if}

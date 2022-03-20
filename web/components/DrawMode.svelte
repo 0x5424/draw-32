@@ -8,6 +8,7 @@
   /* IMPORTS (stores) */
   import { drawMode } from '../stores'
   /* DECLARATIONS (local state) */
+  const formId = 'form-draw-mode'
   /* DECLARATIONS (local functions) */
   const onKeydown = ({ key }) => {
     if (!/(Left|Down|Right|Up)$/.test(key)) return
@@ -18,8 +19,8 @@
   /* LIFECYCLE */
 </script>
 
-<Form>
-  <Input readonly type="text" key="draw-mode" value={$drawMode} {onKeydown} noPad />
+<Form id={formId}>
+  <Input {formId} readonly type="text" key="draw-mode" value={$drawMode} {onKeydown} noPad />
 </Form>
 
 <style></style>

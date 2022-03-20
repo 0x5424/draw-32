@@ -2,24 +2,45 @@
   export let key: string
   export let value: string | number
   export let label: string | null = null
+  export let formId: string
+
+  /* HTML values */
+  export let min = 1
+  export let max = 999
+  export let pattern: string | null = null
+  export let type: 'number' | 'text' | 'textarea' = 'number'
+  export let readonly = false
+  export let autocomplete = 'off'
 
   /* TODO: R&D to see if this is best way to handle conditional styling in svelte/vue */
   export let flexGrow = false // Expand this input to remaining free space (last-child on parent element not working)
   export let noPad = false // Remove left padding on main div (forms with 1 child will use this)
-
-  /* HTML values */
-  export let type: 'number' | 'text' = 'number'
-  export let readonly = false
+  export let oneChar = false // Shorten input width if input should only be 1 char long (arrows use this)
+  export let centerLabel = type === 'textarea' // Place label vertically above input (wider text inputs)
 
   /* Handlers */
-  export let onKeydown = () => {/* Custom logic for manual inputs */}
+  export let onKeydown: () => void = () => {/* Custom logic for manual inputs */}
+  const getTextareaRows = (chars: string) => {
+    const width = 20 // <- Default value for textarea
+    const magicWidth = width + 2 // <- Seems we get 2 extra chars if we don't show the scrollbar 🤷‍♀️
+    const currentLength = `${chars}`.length
+    const ratio = currentLength / magicWidth
+    const newLines = 1 + (`${chars}`.match(/\n/g)?.length || 0)
+
+    if ((currentLength % magicWidth) === 0) return ratio + newLines
+
+    return Math.floor(ratio) + newLines
+  }
 </script>
 
 <div class:flex-grow={flexGrow} class:no-pad-left={noPad}>
   <label for={key}>
-    <span class:pad-left={!!label}>
+    <span class:pad-left={!!label && !centerLabel}>
       {#if label}
         {label}
+        {#if centerLabel}
+          <br />
+        {/if}
       {/if}<slot>
         {#if type === 'number'}
           <input
@@ -28,22 +49,33 @@
             type="number"
             id={key}
             name={key}
-            min=1
-            max=999
             pattern="\d*"
+            {min}
+            {max}
             {readonly}
           >
         {:else if type === 'text'}
           <input
             bind:value
             on:keydown={onKeydown}
-            class:one-char={`${value}`.length <= 1}
+            class:one-char={oneChar}
             class:draw-input={value === 'pattern' || value === 'insert'}
             type="text"
             id={key}
             name={key}
             {readonly}
+            {pattern}
+            {autocomplete}
           >
+        {:else if type === 'textarea'}
+          <textarea
+            bind:value
+            on:keydown={onKeydown}
+            rows={getTextareaRows(value)}
+            form={formId}
+            name={key}
+            id={key}
+          ></textarea>
         {/if}
       </slot>
     </span>
@@ -79,7 +111,7 @@
   .draw-input { width: 65px; }
 
   /* Note: styling only applies when no `slot` used */
-  input {
+  textarea, input {
     border: none;
     background-color: rgba(0,0,0, 0);
     outline: none;
@@ -89,8 +121,16 @@
     min-width: 2.3rem; /* Fits 3 digits */
     width: 2.3rem; /* TODO: Dynamic width; Maybe only possible with JS */
   }
+  input[type="text"] {
+    max-width: 8rem;
+  }
+
+  textarea {
+    resize: none;
+  }
 
   input:focus { color: black; }
+  textarea:focus { color: black; }
 
   /* Hide U/D arrows on safari--also works on chromium */
   input::-webkit-inner-spin-button { display: none; }

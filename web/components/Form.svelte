@@ -2,6 +2,7 @@
   /* Used to wrap Input elements in dedicated form */
 
   /* PROPS */
+  export let id: string
   export let flexForm = false
   export let onFormSubmit = ({ target }): void => {
     const data = new FormData(target)
@@ -25,7 +26,7 @@
   /* LIFECYCLE */
 </script>
 
-<form class:flex-form={flexForm} on:submit|preventDefault={onFormSubmit} on:change={dispatchChange}>
+<form {id} class:flex-form={flexForm} on:submit|preventDefault={onFormSubmit} on:change={dispatchChange}>
   <!-- All children will be placed in slot; Also accepts multiple components without a "React.Fragment" wrapper -->
   <slot></slot>
 
@@ -39,6 +40,7 @@
   }
   .flex-form {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
   }

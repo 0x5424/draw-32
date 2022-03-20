@@ -8,6 +8,7 @@
   /* IMPORTS (stores) */
   import { cw, rotation } from '../stores'
   /* DECLARATIONS (local state) */
+  const formId = 'form-rotation'
   /* DECLARATIONS (local functions) */
   const onKeydown = ({ key }) => {
     if (!/(Left|Down|Right|Up)$/.test(key)) return
@@ -19,8 +20,8 @@
   /* LIFECYCLE */
 </script>
 
-<Form>
-  <Input readonly label="r"  type="text" key="rotation" value={$rotation} {onKeydown} noPad />
+<Form id={formId}>
+  <Input readonly {formId} label="r"  type="text" key="rotation" value={$rotation} {onKeydown} noPad oneChar/>
 </Form>
 
 <style></style>
