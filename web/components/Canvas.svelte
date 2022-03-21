@@ -1,6 +1,7 @@
 <script lang="ts">
   /* IMPORTS */
   import { MatrixRow } from '../util/matrix'
+  import Cell from './Cell.svelte'
   /* PROPS */
   export let matrix: MatrixRow[]
   /* IMPORTS (stores) */
@@ -15,9 +16,7 @@
     {#each matrix as row, rowNum}
       <tr>
         {#each row as {bit, x, y}}
-          <td>
-            {bit}
-          </td>
+          <Cell {bit} cellX={x} cellY={y} />
         {/each}
       </tr>
     {/each}
@@ -31,11 +30,5 @@
     border: solid 1px black;
     background: #f4f4f4;
     font-family: monospace;
-  }
-
-  td {
-    width: 9px;
-    height: 9px;
-    padding: 0;
   }
 </style>
