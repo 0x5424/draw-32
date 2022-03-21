@@ -93,3 +93,23 @@ export const patternCoordinates = derived(
 
     return out
 })
+
+export const insertCoordinates = derived(
+  [cursor, directionText, insertLength],
+  ([$cursor, $directionText, $insertLength]) => {
+    const out = [[], []];
+    let [nextX, nextY] = $cursor;
+
+    for (let i = 0; i < $insertLength; ++i) {
+      const lastCoords = getNextCoordinatesFromDirection($directionText, nextX, nextY);
+
+      out[0].push([nextX, nextY])
+
+      nextX = lastCoords.x
+      nextY = lastCoords.y
+    }
+
+    out[1] = [nextX, nextY]
+
+    return out;
+})

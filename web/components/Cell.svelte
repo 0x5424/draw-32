@@ -5,15 +5,16 @@
   export let cellY: number
   /* IMPORTS */
   /* IMPORTS (stores) */
-  import { cursor, visited, patternCoordinates } from '../stores'
+  import { cursor, visited, drawMode, patternCoordinates, insertCoordinates } from '../stores'
   /* DECLARATIONS (local state) */
   const currentCell = [cellX, cellY].join(':')
   /* DECLARATIONS (local functions) */
   /* STORES (subscriptions) */
   $: isVisited = $visited[currentCell];
   $: isCursor = $cursor.join(':') === currentCell
-  $: isPatternOne = $patternCoordinates[0].map(ary => ary.join(':')).includes(currentCell)
-  $: isPatternTwo = $patternCoordinates[1].map(ary => ary.join(':')).includes(currentCell)
+  $: isPatternOne = $drawMode === 'pattern' && $patternCoordinates[0].map(ary => ary.join(':')).includes(currentCell)
+  $: isPatternTwo = $drawMode === 'pattern' && $patternCoordinates[1].map(ary => ary.join(':')).includes(currentCell)
+  $: isInsertCell = $drawMode === 'insert' && $insertCoordinates[0].map(ary => ary.join(':')).includes(currentCell)
   /* LIFECYCLE */
 </script>
 
@@ -23,6 +24,7 @@
   class:cell-cursor={isCursor}
   class:cell-pattern-one={isPatternOne}
   class:cell-pattern-two={isPatternTwo}
+  class:cell-insert={isInsertCell}
 >
   {bit}
 </td>
@@ -52,4 +54,5 @@
 
   .cell-pattern-one { background: skyblue !important; }
   .cell-pattern-two { background: deepskyblue !important; }
+  .cell-insert { background: deepskyblue !important; }
 </style>
