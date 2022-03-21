@@ -8,10 +8,15 @@
   import DrawMode from './components/DrawMode.svelte'
   import PatternDraw from './components/PatternDraw.svelte'
   import InsertDraw from './components/InsertDraw.svelte'
+
+  // import { EXAMPLE as BITMAP } from './bitmaps'
+  // import { parseBitmap } from './util/matrix'
   /* IMPORTS (stores) */
   import { drawMode } from './stores'
   /* DECLARATIONS (local state) */
   let initialized = false
+  // const matrix = parseBitmap(...BITMAP)
+  let matrix = 'todo'
   /* DECLARATIONS (local functions) */
   const initializeControls = (): void => { initialized = true }
   /* STORES (subscriptions) */
@@ -42,11 +47,11 @@
     {/if}
   </section>
 
-  <section class="canvas-container">
-    <table>
-      <caption>Canvas</caption>
-    </table>
-  </section>
+  {#key matrix}
+    <section in:fade={{ easing }} class="canvas-container">
+      {matrix}
+    </section>
+  {/key}
 </main>
 
 <style>
@@ -77,22 +82,10 @@
 
   hr { width: 80%; }
 
-  caption {
-    font-weight: 100;
-    margin-top: 0px;
-  }
-
   .rotation-draw {
     display: grid;
     grid-template-columns: 2fr 3fr;
     column-gap: 2.25em;
-  }
-
-  table {
-    box-shadow: inset 0 0 1.5px slategrey;
-    /* TODO: Remove once table ready */
-    width: 100px;
-    height: 100px;
   }
 
   section.canvas-container { margin: 0 auto auto; }
