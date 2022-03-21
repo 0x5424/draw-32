@@ -8,15 +8,15 @@
   import DrawMode from './components/DrawMode.svelte'
   import PatternDraw from './components/PatternDraw.svelte'
   import InsertDraw from './components/InsertDraw.svelte'
+  import Canvas from './components/Canvas.svelte'
 
-  // import { EXAMPLE as BITMAP } from './bitmaps'
-  // import { parseBitmap } from './util/matrix'
+  import { EXAMPLE as BITMAP } from './bitmaps'
+  import { parseBitmap } from './util/matrix'
   /* IMPORTS (stores) */
   import { drawMode } from './stores'
   /* DECLARATIONS (local state) */
   let initialized = false
-  // const matrix = parseBitmap(...BITMAP)
-  let matrix = 'todo'
+  const matrix = parseBitmap(...BITMAP)
   /* DECLARATIONS (local functions) */
   const initializeControls = (): void => { initialized = true }
   /* STORES (subscriptions) */
@@ -49,7 +49,7 @@
 
   {#key matrix}
     <section in:fade={{ easing }} class="canvas-container">
-      {matrix}
+      <Canvas {matrix} />
     </section>
   {/key}
 </main>

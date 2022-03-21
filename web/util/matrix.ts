@@ -1,4 +1,4 @@
-interface MatrixRow {
+export interface MatrixRow {
   bit: '0' | '1';
   i: number;
   x: number;
