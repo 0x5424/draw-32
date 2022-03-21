@@ -33,3 +33,6 @@ export const rawPattern = writable('')
 
 /* Insert controls */
 export const insertLength = writable(1)
+
+/* Canvas info */
+export const visited = writable({})
