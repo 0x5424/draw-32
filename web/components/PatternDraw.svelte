@@ -6,7 +6,7 @@
   import Form from './Form.svelte'
   import Input from './Input.svelte'
   /* IMPORTS (stores) */
-  import { patternOneLength, patternTwoLength, rawPattern } from '../stores'
+  import { patternOneLength, patternTwoLength, rawPattern, patternCoordinates } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-pattern-draw'
   /* DECLARATIONS (local functions) */

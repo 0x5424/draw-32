@@ -5,17 +5,24 @@
   export let cellY: number
   /* IMPORTS */
   /* IMPORTS (stores) */
-  import { visited } from '../stores'
+  import { cursor, visited, patternCoordinates } from '../stores'
   /* DECLARATIONS (local state) */
   const currentCell = [cellX, cellY].join(':')
   /* DECLARATIONS (local functions) */
   /* STORES (subscriptions) */
+  $: isVisited = $visited[currentCell];
+  $: isCursor = $cursor.join(':') === currentCell
+  $: isPatternOne = $patternCoordinates[0].map(ary => ary.join(':')).includes(currentCell)
+  $: isPatternTwo = $patternCoordinates[1].map(ary => ary.join(':')).includes(currentCell)
   /* LIFECYCLE */
 </script>
 
 <td
   class:cell-on={bit === '1'}
-  class:cell-visited={!!$visited[currentCell]}
+  class:cell-visited={isVisited}
+  class:cell-cursor={isCursor}
+  class:cell-pattern-one={isPatternOne}
+  class:cell-pattern-two={isPatternTwo}
 >
   {bit}
 </td>
@@ -37,4 +44,12 @@
     background: #444;
     color: #eee;
   }
+
+  .cell-cursor {
+    border: inset 1px #3d3;
+    background: #4f4;
+  }
+
+  .cell-pattern-one { background: skyblue !important; }
+  .cell-pattern-two { background: deepskyblue !important; }
 </style>
