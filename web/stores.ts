@@ -60,20 +60,26 @@ export const patternCoordinates = derived(
   ([$cursor, $directionText, $rotationText, $directionIncrements, $rotationIncrements, $patternOneLength, $patternTwoLength, $rawPattern]) => {
     if ($rawPattern === '') return [[], [], []];
 
-    let lastCoords;
+    let lastCoords
     let [pseudoX, pseudoY] = $cursor
-    const out = [[], [], []]
+    const [incX, incY] = $directionIncrements
+    // NOTE: Must decrement pseudocursor by 1 in order to start pattern draw on proper coordinates
+    pseudoX -= incX
+    pseudoY -= incY
+    const out = {'0': [], '1': []}
 
-    $rawPattern.split('').forEach(bitStr => {
-      const bit = parseInt(bitStr)
-      const currentLength = bit === 0 ? $patternOneLength : $patternTwoLength;
+    $rawPattern.split('').forEach(bit => {
+      const currentLength = bit === '0' ? $patternOneLength : $patternTwoLength;
 
       for (let i = 0; i < currentLength; ++i) {
         lastCoords = getNextCoordinatesFromDirection($directionText, pseudoX, pseudoY);
         out[bit].push([lastCoords.x, lastCoords.y])
 
-        pseudoX = lastCoords.x
-        pseudoY = lastCoords.y
+        // For final iteration, skip cursor update (will be updated separately next)
+        if (i !== currentLength - 1) {
+          pseudoX = lastCoords.x
+          pseudoY = lastCoords.y
+        }
       }
 
       // After writing the full pattern, move cursor to new pattern location--depending on current rotation
@@ -83,7 +89,7 @@ export const patternCoordinates = derived(
     })
 
     // Push most recent coords into last slot
-    out[2] = lastCoords;
+    out['lastCoords'] = lastCoords;
 
     return out
 })
