@@ -4,6 +4,8 @@
   export let cellX: number
   export let cellY: number
   /* IMPORTS */
+  import { fade } from 'svelte/transition'
+  import { quadInOut as easing } from 'svelte/easing'
   /* IMPORTS (stores) */
   import { cursor, visited, drawMode, patternCoordinates, insertCoordinates } from '../stores'
   /* DECLARATIONS (local state) */
@@ -18,16 +20,19 @@
   /* LIFECYCLE */
 </script>
 
-<td
-  class:cell-on={bit === '1'}
-  class:cell-visited={isVisited}
-  class:cell-cursor={isCursor}
-  class:cell-pattern-one={isPatternOne}
-  class:cell-pattern-two={isPatternTwo}
-  class:cell-insert={isInsertCell}
->
-  {bit}
-</td>
+{#key isPatternOne || isPatternTwo || isInsertCell}
+  <td
+    in:fade={{ easing, duration: 80 }}
+    class:cell-on={bit === '1'}
+    class:cell-visited={isVisited}
+    class:cell-cursor={isCursor}
+    class:cell-pattern-one={isPatternOne}
+    class:cell-pattern-two={isPatternTwo}
+    class:cell-insert={isInsertCell}
+  >
+    {bit}
+  </td>
+{/key}
 
 <style type="css">
   td {
@@ -54,5 +59,5 @@
 
   .cell-pattern-one { background: skyblue !important; }
   .cell-pattern-two { background: deepskyblue !important; }
-  .cell-insert { background: deepskyblue !important; }
+  .cell-insert { background: lightsteelblue !important; }
 </style>
