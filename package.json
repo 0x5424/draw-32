@@ -15,8 +15,11 @@
     "@rollup/plugin-node-resolve": "^11.0.0",
     "@rollup/plugin-typescript": "^8.0.0",
     "@tsconfig/svelte": "^2.0.0",
+    "@types/chai": "*",
+    "@types/mocha": "*",
     "@typescript-eslint/eslint-plugin": "^5.15.0",
     "@typescript-eslint/parser": "^5.15.0",
+    "chai": "*",
     "eslint": "^8.11.0",
     "eslint-plugin-svelte3": "^3.4.1",
     "rollup": "^2.3.4",
@@ -28,6 +31,7 @@
     "svelte": "^3.0.0",
     "svelte-check": "^2.0.0",
     "svelte-preprocess": "^4.0.0",
+    "ts-mocha": "*",
     "tslib": "^2.0.0"
   },
   "dependencies": {
