@@ -7,7 +7,7 @@
     "dev": "rollup -c -w",
     "start": "sirv public --no-clear",
     "lint": "eslint web",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "ts-mocha -p tsconfig.json test/**/*.spec.ts",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
   "devDependencies": {

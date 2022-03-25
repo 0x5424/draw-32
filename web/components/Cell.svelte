@@ -12,7 +12,7 @@
   const currentCell = [cellX, cellY].join(':')
   /* DECLARATIONS (local functions) */
   /* STORES (subscriptions) */
-  $: isVisited = $visited[currentCell];
+  $: isVisited = $visited[currentCell]
   $: isCursor = $cursor.join(':') === currentCell
   $: isPatternOne = $drawMode === 'pattern' && $patternCoordinates[0].map(ary => ary.join(':')).includes(currentCell)
   $: isPatternTwo = $drawMode === 'pattern' && $patternCoordinates[1].map(ary => ary.join(':')).includes(currentCell)

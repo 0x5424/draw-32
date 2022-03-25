@@ -9,7 +9,7 @@ export const INCREMENTS = {
   DOWN_RIGHT: [1, 1],
 }
 
-export const getNextCoordinatesFromDirection = (direction, x: number, y: number) => {
+export const getNextCoordinatesFromDirection = (direction: string, x: number, y: number) => {
   const [xInc, yInc] = INCREMENTS[direction]
 
   const outX = x + xInc

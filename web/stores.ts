@@ -1,5 +1,10 @@
 import { writable, derived } from 'svelte/store'
 
+interface Coordinates {
+  x: number;
+  y: number;
+}
+
 import {
   INCREMENTS,
   getNextCoordinatesFromDirection
@@ -56,11 +61,11 @@ export const insertLength = writable(1)
 /* Canvas info */
 export const visited = writable({})
 export const patternCoordinates = derived(
-  [cursor, directionText, rotationText, directionIncrements, rotationIncrements, patternOneLength, patternTwoLength, rawPattern],
-  ([$cursor, $directionText, $rotationText, $directionIncrements, $rotationIncrements, $patternOneLength, $patternTwoLength, $rawPattern]) => {
-    if ($rawPattern === '') return [[], [], []];
+  [cursor, directionText, rotationText, directionIncrements, patternOneLength, patternTwoLength, rawPattern],
+  ([$cursor, $directionText, $rotationText, $directionIncrements, $patternOneLength, $patternTwoLength, $rawPattern]) => {
+    if ($rawPattern === '') return [[], [], []]
 
-    let lastCoords
+    let lastCoords: Coordinates
     let [pseudoX, pseudoY] = $cursor
     const [incX, incY] = $directionIncrements
     // NOTE: Must decrement pseudocursor by 1 in order to start pattern draw on proper coordinates
@@ -69,10 +74,10 @@ export const patternCoordinates = derived(
     const out = {'0': [], '1': []}
 
     $rawPattern.split('').forEach(bit => {
-      const currentLength = bit === '0' ? $patternOneLength : $patternTwoLength;
+      const currentLength = bit === '0' ? $patternOneLength : $patternTwoLength
 
       for (let i = 0; i < currentLength; ++i) {
-        lastCoords = getNextCoordinatesFromDirection($directionText, pseudoX, pseudoY);
+        lastCoords = getNextCoordinatesFromDirection($directionText, pseudoX, pseudoY)
         out[bit].push([lastCoords.x, lastCoords.y])
 
         // For final iteration, skip cursor update (will be updated separately next)
@@ -89,19 +94,19 @@ export const patternCoordinates = derived(
     })
 
     // Push most recent coords into last slot
-    out['lastCoords'] = lastCoords;
+    out['lastCoords'] = lastCoords
 
     return out
-})
+  })
 
 export const insertCoordinates = derived(
   [cursor, directionText, insertLength],
   ([$cursor, $directionText, $insertLength]) => {
-    const out = [[], []];
-    let [nextX, nextY] = $cursor;
+    const out = [[], []]
+    let [nextX, nextY] = $cursor
 
     for (let i = 0; i < $insertLength; ++i) {
-      const lastCoords = getNextCoordinatesFromDirection($directionText, nextX, nextY);
+      const lastCoords = getNextCoordinatesFromDirection($directionText, nextX, nextY)
 
       out[0].push([nextX, nextY])
 
@@ -111,5 +116,5 @@ export const insertCoordinates = derived(
 
     out[1] = [nextX, nextY]
 
-    return out;
-})
+    return out
+  })

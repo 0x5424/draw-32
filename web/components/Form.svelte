@@ -4,7 +4,7 @@
   /* PROPS */
   export let id: string
   export let flexForm = false
-  export let accesskey = false
+  export let accesskey: string | null = null
   export let onFormSubmit = ({ target }): void => {
     const data = new FormData(target)
     console.warn('NOTE: No form handler supplied.')
@@ -31,6 +31,7 @@
   <!-- All children will be placed in slot; Also accepts multiple components without a "React.Fragment"-like wrapper -->
   <slot></slot>
 
+  <!-- svelte-ignore a11y-accesskey -->
   <input type="submit" {accesskey}>
 </form>
 

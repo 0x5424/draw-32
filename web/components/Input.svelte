@@ -19,13 +19,15 @@
   export let centerLabel = type === 'textarea' // Place label vertically above input (wider text inputs)
 
   /* Handlers */
-  export let onKeydown: () => void = () => {/* Custom logic for manual inputs */}
-  const getTextareaRows = (chars: string) => {
+  export let onKeydown: (args: any) => void = () => {/* Custom logic for manual inputs */}
+
+  /* inputValue is either handled by a svelte store (number | string) or from a DOM event (string) */
+  const getTextareaRows = (inputValue: string | number) => {
     const width = 20 // <- Default value for textarea
     const magicWidth = width + 2 // <- Seems we get 2 extra chars if we don't show the scrollbar 🤷‍♀️
-    const currentLength = `${chars}`.length
+    const currentLength = `${inputValue}`.length
     const ratio = currentLength / magicWidth
-    const newLines = 1 + (`${chars}`.match(/\n/g)?.length || 0)
+    const newLines = 1 + (`${inputValue}`.match(/\n/g)?.length || 0)
 
     if ((currentLength % magicWidth) === 0) return ratio + newLines
 

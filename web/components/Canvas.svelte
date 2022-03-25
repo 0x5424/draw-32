@@ -1,9 +1,9 @@
 <script lang="ts">
   /* IMPORTS */
-  import { MatrixRow } from '../util/matrix'
+  import type { MatrixRow } from '../util/matrix'
   import Cell from './Cell.svelte'
   /* PROPS */
-  export let matrix: MatrixRow[]
+  export let matrix: MatrixRow[][]
   /* IMPORTS (stores) */
   /* DECLARATIONS (local state) */
   /* DECLARATIONS (local functions) */
@@ -13,7 +13,7 @@
 
 <table cellspacing="1">
   <tbody>
-    {#each matrix as row, rowNum}
+    {#each matrix as row}
       <tr>
         {#each row as {bit, x, y}}
           <Cell {bit} cellX={x} cellY={y} />
