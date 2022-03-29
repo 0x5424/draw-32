@@ -20,5 +20,14 @@ export const encodeRle = (int: number) => {
 }
 
 export const decodeRle = (stream: string) => {
-  throw new Error('not implemented')
+  let mask = '0'
+  let bitsRead = 0
+  // Iterate until we hit a non-1
+  for (; stream[bitsRead] === '1'; ++bitsRead) {
+    mask = '1' + mask
+  }
+
+  const rest = stream.slice(bitsRead + 1)
+
+  return parseInt(rest, 2) + (parseInt(mask, 2) + 0b1)
 }
