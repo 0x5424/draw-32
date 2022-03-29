@@ -1,4 +1,4 @@
-export interface MatrixRow {
+export interface MatrixCell {
   bit: '0' | '1';
   i: number;
   x: number;
@@ -8,7 +8,7 @@ export interface MatrixRow {
 /**
  * Given a stream of bits, create a `width*width` matrix
  */
-const streamToSquareMatrix = (stream: string, width: number): MatrixRow[][] => {
+const streamToSquareMatrix = (stream: string, width: number): MatrixCell[][] => {
   const output = []
 
   for (let i = 0; i < width; i++) {
@@ -35,7 +35,7 @@ const streamToSquareMatrix = (stream: string, width: number): MatrixRow[][] => {
 /**
  * Given a stream of bits, create a `width*height` matrix
  */
-const streamToMatrix = (stream: string, width: number, height: number): MatrixRow[][] => {
+const streamToMatrix = (stream: string, width: number, height: number): MatrixCell[][] => {
   const output = []
 
   // 1. Init all rows (height)
@@ -68,7 +68,7 @@ const streamToMatrix = (stream: string, width: number, height: number): MatrixRo
  *
  * @note If no dimensions are given, assumed to be square
  */
-export const parseBitmap = (stream: string, width?: number, height?: number): MatrixRow[][] => {
+export const parseBitmap = (stream: string, width?: number, height?: number): MatrixCell[][] => {
   let squareLength = width || height
   let isSquare = width && height && width === height
 

@@ -19,7 +19,7 @@
   export let centerLabel = type === 'textarea' // Place label vertically above input (wider text inputs)
 
   /* Handlers */
-  export let onKeydown: (args: any) => void = () => {/* Custom logic for manual inputs */}
+  export let onKeydown: (args: unknown) => void = () => {/* Custom logic for manual inputs */}
 
   /* inputValue is either handled by a svelte store (number | string) or from a DOM event (string) */
   const getTextareaRows = (inputValue: string | number) => {

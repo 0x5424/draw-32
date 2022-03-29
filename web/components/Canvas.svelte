@@ -1,9 +1,9 @@
 <script lang="ts">
   /* IMPORTS */
-  import type { MatrixRow } from '../util/matrix'
+  import type { MatrixCell } from '../util/matrix'
   import Cell from './Cell.svelte'
   /* PROPS */
-  export let matrix: MatrixRow[][]
+  export let matrix: MatrixCell[][]
   /* IMPORTS (stores) */
   /* DECLARATIONS (local state) */
   /* DECLARATIONS (local functions) */
