@@ -1,6 +1,10 @@
 import { encodeRle } from './encode'
 
 /**
+ * @todo Consider TS template literal for return types here
+ */
+
+/**
  * Raw format: (0, *, 1, N)
  *
  * - `0` = Constant 0; "Draw subroutine"
@@ -31,24 +35,33 @@ interface InsertInstruction {
  * - `0` = Constant 0; "Draw subroutine"
  * - `*` = 1 bit; Rotation, cw/ccw
  * - `0` = Constant 0; "Pattern mode"
- * - `****` = 4 bits; Upper are length/size of P1, Lower are length/size of P2
+ * - `****` = 4 bits; Upper are length/size of P1, Lower are length/size of P2--only from 1-4 & 2-5 respectively
  * - `N` = Variable; RLE encoded length of pattern to insert
  * - `N` = Variable; Bitstream instructions read sequentially, wherein 0 inserts P1, 1 inserts P2
  */
-interface PatternInstruction {
+export interface PatternInstruction {
   cw: boolean;
   p1Length: 1 | 2 | 3 | 4;
   p2Length: 2 | 3 | 4 | 5;
-  patternLength: number;
   pattern: string;
 }
 
-export const commitInsertDraw = (instruction: InsertInstruction) => {
+export const commitInsertDraw = (instruction: InsertInstruction): string => {
   const rotation = instruction.cw ? '0' : '1'
 
   return ['0', rotation, '1', encodeRle(instruction.length)].join('')
 }
-export const commitPatternDraw = (instruction: PatternInstruction) => {}
+export const commitPatternDraw = (instruction: PatternInstruction) => {
+  const { p1Length, p2Length, pattern } = instruction
+
+  const rotation = instruction.cw ? '0' : '1'
+  // 00 | 01 | 10 | 11
+  const p1 = (p1Length - 1).toString(2).padStart(2, '0')
+  const p2 = (p2Length - 2).toString(2).padStart(2, '0')
+  const patternLength = encodeRle(pattern.length)
+
+  return ['0', rotation, '0', p1, p2, patternLength, pattern].join('')
+}
 
 /**
  * @todo Revisit after headers documented

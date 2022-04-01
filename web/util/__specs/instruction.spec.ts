@@ -1,5 +1,8 @@
 import { expect } from 'chai'
-import { commitInsertDraw, commitPatternDraw } from '../instruction'
+import {
+  commitInsertDraw, commitPatternDraw,
+  PatternInstruction
+} from '../instruction'
 
 describe('instruction.ts', () => {
   describe('#commitInsertDraw()', () => {
@@ -19,11 +22,18 @@ describe('instruction.ts', () => {
   })
 
   describe('#commitPatternDraw()', () => {
-    it('succeeds with valid arguments', () => {})
-  })
+    it('succeeds with valid arguments', () => {
+      const cwP1P2: PatternInstruction = {cw: true, p1Length: 1, p2Length: 2, pattern: '00101'} // len: 5
+      const ccwP2P3: PatternInstruction = {cw: false, p1Length: 2, p2Length: 3, pattern: '1100010'} // 7
+      const cwP3P4: PatternInstruction = {cw: true, p1Length: 3, p2Length: 4, pattern: '01'} // 2
+      const ccwP4P5: PatternInstruction = {cw: false, p1Length: 4, p2Length: 5, pattern: '000001000'} // 9
+      const cwP1: PatternInstruction = {cw: true, p1Length: 1, p2Length: 2, pattern: '0000'} // 4
 
-  /*
-  describe('#encodeDelta()', () => {})
-  describe('#decodeDelta()', () => {})
-  */
+      expect(commitPatternDraw(cwP1P2)).to.eql('0000000101000101')
+      expect(commitPatternDraw(ccwP2P3)).to.eql('01001011100001100010')
+      expect(commitPatternDraw(cwP3P4)).to.eql('00010100101')
+      expect(commitPatternDraw(ccwP4P5)).to.eql('0101111110010000001000')
+      expect(commitPatternDraw(cwP1)).to.eql('000000010010000')
+    })
+  })
 })
