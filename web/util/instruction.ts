@@ -46,11 +46,13 @@ export interface PatternInstruction {
   pattern: string;
 }
 
+
 export const commitInsertDraw = (instruction: InsertInstruction): string => {
   const rotation = instruction.cw ? '0' : '1'
 
   return ['0', rotation, '1', encodeRle(instruction.length)].join('')
 }
+
 export const commitPatternDraw = (instruction: PatternInstruction) => {
   const { p1Length, p2Length, pattern } = instruction
 
@@ -63,7 +65,29 @@ export const commitPatternDraw = (instruction: PatternInstruction) => {
   return ['0', rotation, '0', p1, p2, patternLength, pattern].join('')
 }
 
+export type Direction = 'LEFT' | 'DOWN' | 'RIGHT' | 'UP'
+/**
+ * @todo Use Util Types here to infer/auto-omit `current` value as valid for newDirection; Omit<> or Exclude<>
+ */
+export const commitRotate = (current: Direction, newDirection?: Direction) => {
+  if (current === newDirection) throw new Error('Same direction; No-op')
+
+  // If newDirection omitted, assume simple CW rotation
+  if (!newDirection) return '1'
+
+  return {
+    UP: {
+      RIGHT: '1',
+      DOWN: '11',
+      LEFT: '111'
+    },
+    RIGHT: { DOWN: '1', LEFT: '11', UP: '111' },
+    DOWN: { LEFT: '1', UP: '11', RIGHT: '111' },
+    LEFT: { UP: '1', RIGHT: '11', DOWN: '111' },
+  }[current][newDirection]
+}
+
 /**
  * @todo Revisit after headers documented
  */
-const commitJump = () => {}
+// const commitJump = () => {}
