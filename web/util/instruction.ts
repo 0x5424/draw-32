@@ -1,3 +1,5 @@
+import { encodeRle } from './encode'
+
 /**
  * Raw format: (0, *, 1, N)
  *
@@ -41,7 +43,11 @@ interface PatternInstruction {
   pattern: string;
 }
 
-export const commitInsertDraw = (instruction: InsertInstruction) => {}
+export const commitInsertDraw = (instruction: InsertInstruction) => {
+  const rotation = instruction.cw ? '0' : '1'
+
+  return ['0', rotation, '1', encodeRle(instruction.length)].join('')
+}
 export const commitPatternDraw = (instruction: PatternInstruction) => {}
 
 /**
