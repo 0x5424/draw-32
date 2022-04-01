@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import {
-  commitInsertDraw, commitPatternDraw,
-  PatternInstruction
+  commitInsertDraw, commitPatternDraw, commitRotate,
+  PatternInstruction, Direction
 } from '../instruction'
 
 describe('instruction.ts', () => {
@@ -34,6 +34,20 @@ describe('instruction.ts', () => {
       expect(commitPatternDraw(cwP3P4)).to.eql('00010100101')
       expect(commitPatternDraw(ccwP4P5)).to.eql('0101111110010000001000')
       expect(commitPatternDraw(cwP1)).to.eql('000000010010000')
+    })
+  })
+
+  describe('#commitRotate()', () => {
+    it('succeeds with valid arguments', () => {
+      const oneArg: [Direction] = ['LEFT']
+      const rot90: [Direction, Direction] = ['UP', 'RIGHT']
+      const rot180: [Direction, Direction] = ['RIGHT', 'LEFT']
+      const rot270: [Direction, Direction] = ['LEFT', 'DOWN']
+
+      expect(commitRotate(...oneArg)).to.eql('1')
+      expect(commitRotate(...rot90)).to.eql('1')
+      expect(commitRotate(...rot180)).to.eql('11')
+      expect(commitRotate(...rot270)).to.eql('111')
     })
   })
 })
