@@ -47,7 +47,7 @@ export interface PatternInstruction {
 }
 
 
-export const commitInsertDraw = (instruction: InsertInstruction): string => {
+export const commitInsertDraw = (instruction: InsertInstruction) => {
   const rotation = instruction.cw ? '0' : '1'
 
   return ['0', rotation, '1', encodeRle(instruction.length)].join('')
@@ -82,6 +82,23 @@ export const commitRotate = (newDirection: Direction) => {
   }[newDirection]
 
   return ['1', '0', direction].join('')
+}
+
+type Bit = '0' | '1'
+type ColorIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15
+type Nibble = `${Bit}${Bit}${Bit}${Bit}`
+
+/**
+ * Raw format: (1, 10, ****)
+ *
+ * - `1` = Constant 1; "Command subroutine"
+ * - `10` = Constant 10; "Set color"
+ * - `****` = 4 bits; Index # of the color in a palette (16 colors out of 16,777,216; Includes alpha)
+ */
+export const commitColor = (colorIndex: ColorIndex) => {
+  const newColor = colorIndex.toString(2).padStart(4, '0') as Nibble
+
+  return ['1', '10', newColor].join('')
 }
 
 /**
