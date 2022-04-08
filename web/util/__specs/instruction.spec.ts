@@ -39,15 +39,15 @@ describe('instruction.ts', () => {
 
   describe('#commitRotate()', () => {
     it('succeeds with valid arguments', () => {
-      const oneArg: [Direction] = ['LEFT']
-      const rot90: [Direction, Direction] = ['UP', 'RIGHT']
-      const rot180: [Direction, Direction] = ['RIGHT', 'LEFT']
-      const rot270: [Direction, Direction] = ['LEFT', 'DOWN']
+      const leftInstruction: Direction = 'LEFT'
+      const downInstruction: Direction = 'DOWN'
+      const rightInstruction: Direction = 'RIGHT'
+      const upInstruction: Direction = 'UP'
 
-      expect(commitRotate(...oneArg)).to.eql('1')
-      expect(commitRotate(...rot90)).to.eql('1')
-      expect(commitRotate(...rot180)).to.eql('11')
-      expect(commitRotate(...rot270)).to.eql('111')
+      expect(commitRotate(upInstruction)).to.eql('1000')
+      expect(commitRotate(rightInstruction)).to.eql('1001')
+      expect(commitRotate(downInstruction)).to.eql('1010')
+      expect(commitRotate(leftInstruction)).to.eql('1011')
     })
   })
 })

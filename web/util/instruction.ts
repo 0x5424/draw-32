@@ -67,24 +67,21 @@ export const commitPatternDraw = (instruction: PatternInstruction) => {
 
 export type Direction = 'LEFT' | 'DOWN' | 'RIGHT' | 'UP'
 /**
- * @todo Use Util Types here to infer/auto-omit `current` value as valid for newDirection; Omit<> or Exclude<>
+ * Raw format: (1, 0, **)
+ *
+ * - `1` = Constant 1; "Command subroutine"
+ * - `0` = Constant 0; "Set rotation"
+ * - `**` = 2 bits; U/R/D/L, mapped to 0,1,2,3 in binary
  */
-export const commitRotate = (current: Direction, newDirection?: Direction) => {
-  if (current === newDirection) throw new Error('Same direction; No-op')
+export const commitRotate = (newDirection: Direction) => {
+  const direction = {
+    UP: '00',
+    RIGHT: '01',
+    DOWN: '10',
+    LEFT: '11'
+  }[newDirection]
 
-  // If newDirection omitted, assume simple CW rotation
-  if (!newDirection) return '1'
-
-  return {
-    UP: {
-      RIGHT: '1',
-      DOWN: '11',
-      LEFT: '111'
-    },
-    RIGHT: { DOWN: '1', LEFT: '11', UP: '111' },
-    DOWN: { LEFT: '1', UP: '11', RIGHT: '111' },
-    LEFT: { UP: '1', RIGHT: '11', DOWN: '111' },
-  }[current][newDirection]
+  return ['1', '0', direction].join('')
 }
 
 /**
