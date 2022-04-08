@@ -107,11 +107,18 @@ export const commitColor = (colorIndex: ColorIndex) => {
  * - `1` = Constant 1; "Command subroutine"
  * - `110` = Constant 110; "Fill w/ current color"
  */
-export const commitFill = () => {
-  return '1110'
-}
+export const commitFill = () => '1110'
 
 /**
- * @todo Revisit after headers documented
+ * Raw format: (1, 111, N, N)
+ *
+ * - `1` = Constant 1; "Command subroutine"
+ * - `111` = Constant 110; "Fill w/ current color"
+ * - `N` = Variable; RLE encoded X coordinate
+ * - `N` = Variable; RLE encoded Y coordinate
  */
-// const commitJump = () => {}
+export const commitJump = (x: number, y: number) => {
+  const xy = [x, y].map(encodeRle).join('')
+
+  return ['1', '111', xy].join('')
+}
