@@ -11,7 +11,7 @@
   const formId = 'form-rotation'
   /* DECLARATIONS (local functions) */
   const onKeydown = ({ key }) => {
-    if (!/(Left|Down|Right|Up)$/.test(key)) return
+    if (!/(Left|Down|Right|Up| )$/.test(key)) return
 
     $cw = !$cw
   }

@@ -22,7 +22,7 @@ The app can then run locally with `npm run dev`[^1].
 <!-- ## Usage -->
 
 ## Browser Support
-Currently, the app is targeting browsers in environments with full keyboard access. Namely, it currently depends on the *arrow keys* to modify some form values.
+Currently, the app is targeting browsers in environments with full keyboard access.
 
 Depending on the complexity of the desired image and canvas size, browsers/tablets will naturally be a better fit for using the software.
 Long-term, the SPA aims to support a touch/stylus "artist mode", intended to abstract away the internals surrounding cursor, rotation, etc[^1]--providing more creative freedom to artists.

@@ -9,6 +9,7 @@
   import PatternDraw from './components/PatternDraw.svelte'
   import InsertDraw from './components/InsertDraw.svelte'
   import Canvas from './components/Canvas.svelte'
+  import Instructions from './components/Instructions.svelte'
 
   import { EXAMPLE as BITMAP } from './bitmaps'
   import { parseBitmap } from './util/matrix'
@@ -45,6 +46,9 @@
         <InsertDraw />
       </div>
     {/if}
+
+    <hr />
+    <Instructions />
   </section>
 
   {#key matrix}

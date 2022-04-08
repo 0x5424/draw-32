@@ -22,6 +22,7 @@ export const directionText = derived(direction, $direction => {
   if ($direction === '↑') return 'UP'
   throw new Error('invalid direction set')
 })
+export const prevDirection = writable('')
 
 export const cw = writable(false)
 export const rotation = derived([directionText, cw], ([$directionText, $cw]) => {
@@ -118,3 +119,38 @@ export const insertCoordinates = derived(
 
     return out
   })
+
+export const currentSequence = (() => {
+  let value = []
+  let subs = []
+
+  const subscribe = (handler) => {
+    subs = [...subs, handler]
+    handler(value)
+    return () => subs = subs.filter(sub => sub !== handler)
+  }
+
+  /**
+   * Custom `set` validation to throw on overflow
+   */
+  const set = (newInstruction) => {
+    if (newInstruction.join('').length > 255) throw new Error('Instruction overflow')
+
+    value = newInstruction
+    subs.forEach(sub => sub(value))
+  }
+
+  const update = (update) => set(update(value))
+
+  return { subscribe, set, update }
+})()
+
+export const pastSequences = writable([])
+export const allSequences = derived([currentSequence, pastSequences], ([$currentSequence, $pastSequences]: [any, any]) => {
+  const format = (val) => val.join('')
+
+  const past = $pastSequences.map(format)
+  const current = $currentSequence.join('')
+
+  return [...past, current]
+})

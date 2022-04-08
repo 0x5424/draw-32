@@ -16,12 +16,10 @@
    * If tab pressed assume select next form element, else we do nothing (preventDefault)
    */
   const onKeydown = ({ key }) => {
-    if (!/(Left|Down|Right|Up)$/.test(key)) return
-
-    if (key === 'ArrowLeft') return $direction = '←'
-    if (key === 'ArrowDown') return $direction = '↓'
-    if (key === 'ArrowRight') return $direction = '→'
-    if (key === 'ArrowUp') return $direction = '↑'
+    if (/(ArrowLeft|l)$/.test(key)) return $direction = '←'
+    if (/(ArrowDown|d)$/.test(key)) return $direction = '↓'
+    if (/(ArrowRight|r)$/.test(key)) return $direction = '→'
+    if (/(ArrowUp|u)$/.test(key)) return $direction = '↑'
   }
   /* STORES (subscriptions) */
   /* LIFECYCLE */
