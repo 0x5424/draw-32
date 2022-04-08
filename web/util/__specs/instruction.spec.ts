@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import {
-  commitInsertDraw, commitPatternDraw, commitRotate, commitColor,
+  commitInsertDraw, commitPatternDraw, commitRotate, commitColor, commitFill,
   PatternInstruction, Direction
 } from '../instruction'
 
@@ -62,6 +62,12 @@ describe('instruction.ts', () => {
       expect(commitColor(fourthColor)).to.eql('1100011')
       expect(commitColor(eighthColor)).to.eql('1100111')
       expect(commitColor(sixteenthColor)).to.eql('1101111')
+    })
+  })
+
+  describe('#commitColor()', () => {
+    it('matches expected output', () => {
+      expect(commitFill()).to.eql('1110')
     })
   })
 })

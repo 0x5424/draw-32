@@ -93,12 +93,22 @@ type Nibble = `${Bit}${Bit}${Bit}${Bit}`
  *
  * - `1` = Constant 1; "Command subroutine"
  * - `10` = Constant 10; "Set color"
- * - `****` = 4 bits; Index # of the color in a palette (16 colors out of 16,777,216; Includes alpha)
+ * - `****` = 4 bits; Index # of the color in the palette (16 colors out of 16,777,216; Includes alpha)
  */
 export const commitColor = (colorIndex: ColorIndex) => {
   const newColor = colorIndex.toString(2).padStart(4, '0') as Nibble
 
   return ['1', '10', newColor].join('')
+}
+
+/**
+ * Raw format: (1, 110)
+ *
+ * - `1` = Constant 1; "Command subroutine"
+ * - `110` = Constant 110; "Fill w/ current color"
+ */
+export const commitFill = () => {
+  return '1110'
 }
 
 /**
