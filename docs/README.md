@@ -33,6 +33,16 @@ Long-term, the SPA aims to support a touch/stylus "artist mode", intended to abs
   - The cause is confirmed to only happen when the `Form` submit input (only for that component) has `display: none`. Does not happen on Chromium
   - Current workaround is by using the [`accesskey`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-accesskey) directive for that form.
 
-<!-- ## Testing -->
+## Testing
+Unit tests are placed adjacent to their respective files in dedicated `__specs` folders. At present, only unit tests for instruction parsing/encoding is included.
 
-<!-- ## Contributing -->
+Tests for webapp components are considered a tertiary priority, as the overall design is still subject to changes.
+
+## Contributing
+Feel free to address any of the issues listed in the github issue tracker. Discussion around each issue is also welcome.
+
+Then, for code contributions:
+1. Fork this repository
+2. Branch off `source`
+3. Ensure CI is successful after the inclusion of your changes
+4. Create a pull request
