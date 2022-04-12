@@ -1,6 +1,7 @@
 import { expect } from 'chai'
 import {
   commitInsertDraw, commitPatternDraw, commitRotate, commitColor, commitFill, commitJump,
+  performDraw,
   PatternInstruction, Direction
 } from '../instruction'
 
@@ -77,6 +78,20 @@ describe('instruction.ts', () => {
       const coordsBig: [number, number] = [143, 187]
       expect(commitJump(...coordsSmall)).to.eql('1111110001110011')
       expect(commitJump(...coordsBig)).to.eql('11111111110001000011111100111100')
+    })
+  })
+
+  describe('#performDraw()', () => {
+    it('matches expected output', () => {
+      const oneArg = {drawInstruction: 'draw'}
+      const twoArgs = {drawInstruction: 'draw', rotateInstruction: 'Rotate'}
+      const threeArgs = {drawInstruction: 'draw', rotateInstruction: 'Rotate', jumpInstruction: 'Jump'}
+      const noRotate = {drawInstruction: 'draw', jumpInstruction: 'Jump'}
+
+      expect(performDraw(oneArg)).to.eql('draw')
+      expect(performDraw(twoArgs)).to.eql('drawRotate')
+      expect(performDraw(threeArgs)).to.eql('drawRotateJump')
+      expect(performDraw(noRotate)).to.eql('drawJump')
     })
   })
 })

@@ -122,3 +122,19 @@ export const commitJump = (x: number, y: number) => {
 
   return ['1', '111', xy].join('')
 }
+
+interface PerformDrawArguments {
+  drawInstruction: string;
+  rotateInstruction?: string;
+  jumpInstruction?: string;
+}
+export const performDraw = (instructions: PerformDrawArguments) => {
+  const { drawInstruction, rotateInstruction, jumpInstruction } = instructions
+
+  const output = [drawInstruction]
+
+  if (rotateInstruction) output.push(rotateInstruction)
+  if (jumpInstruction) output.push(jumpInstruction)
+
+  return output.join('')
+}

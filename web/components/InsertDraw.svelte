@@ -6,26 +6,39 @@
   import Form from './Form.svelte'
   import Input from './Input.svelte'
 
-  import { commitRotate, commitInsertDraw } from '../util/instruction'
+  import { commitRotate, commitInsertDraw, commitJump, performDraw } from '../util/instruction'
 
   /* IMPORTS (stores) */
-  import { cw, insertLength, direction, directionText, prevDirection, currentSequence } from '../stores'
+  import {
+    cw, insertLength, direction, directionText, prevDirection,
+    cursor, cursorX, cursorY, prevCursor, visited,
+    currentSequence, insertCoordinates
+  } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-insert-draw'
   /* DECLARATIONS (local functions) */
   const onFormSubmit = () => {
-    if ($direction !== $prevDirection) {
-      const rotateInstruction = commitRotate($directionText)
-
-      $currentSequence = [...$currentSequence, rotateInstruction]
+    if (!$insertLength) return;
+    const drawArgs = {
+      drawInstruction: commitInsertDraw({ cw: $cw, length: $insertLength })
     }
 
-    const insertDrawInstruction = commitInsertDraw({
-      cw: $cw,
-      length: $insertLength
-    })
+    if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText)
+    if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor)
 
-    $currentSequence = [...$currentSequence, insertDrawInstruction]
+    $currentSequence = [...$currentSequence, performDraw(drawArgs)]
+
+    // Lastly, set new coords, set pixels & reset form values
+    const [newX, newY] = $insertCoordinates[1]
+    const newlyTraversed = {}
+    $insertCoordinates[0].map(([x, y]) => newlyTraversed[`${x}:${y}`] = true)
+
+    $cursorX = newX
+    $cursorY = newY
+    $prevDirection = $direction
+    $prevCursor = [newX, newY]
+    $visited = {...$visited, ...newlyTraversed}
+    $insertLength = 1
   }
   /* STORES (subscriptions) */
   /* LIFECYCLE */

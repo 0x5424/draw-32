@@ -11,12 +11,15 @@
   /* DECLARATIONS (local state) */
   const currentCell = [cellX, cellY].join(':')
   /* DECLARATIONS (local functions) */
+  const formatCell = (ary) => ary.join(':')
+
   /* STORES (subscriptions) */
   $: isVisited = $visited[currentCell]
   $: isCursor = $cursor.join(':') === currentCell
-  $: isPatternOne = $drawMode === 'pattern' && $patternCoordinates[0].map(ary => ary.join(':')).includes(currentCell)
-  $: isPatternTwo = $drawMode === 'pattern' && $patternCoordinates[1].map(ary => ary.join(':')).includes(currentCell)
-  $: isInsertCell = $drawMode === 'insert' && $insertCoordinates[0].map(ary => ary.join(':')).includes(currentCell)
+  $: isPatternOne = $drawMode === 'pattern' && $patternCoordinates[0].map(formatCell).includes(currentCell)
+  $: isPatternTwo = $drawMode === 'pattern' && $patternCoordinates[1].map(formatCell).includes(currentCell)
+  $: isInsertCell = $drawMode === 'insert' && $insertCoordinates[0].map(formatCell).includes(currentCell)
+  $: nextCursor = ($drawMode === 'insert' && $insertCoordinates[1]) || ($drawMode === 'pattern' && $patternCoordinates.nextCursor)
   /* LIFECYCLE */
 </script>
 
@@ -29,6 +32,7 @@
     class:cell-pattern-one={isPatternOne}
     class:cell-pattern-two={isPatternTwo}
     class:cell-insert={isInsertCell}
+    class:cell-next-cursor={nextCursor?.join(':') === currentCell}
   >
     {bit}
   </td>
@@ -60,4 +64,9 @@
   .cell-pattern-one { background: skyblue !important; }
   .cell-pattern-two { background: deepskyblue !important; }
   .cell-insert { background: lightsteelblue !important; }
+
+  .cell-next-cursor {
+    border: inset 1px #faa;
+    background: #fab !important;
+  }
 </style>

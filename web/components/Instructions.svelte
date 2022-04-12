@@ -8,6 +8,13 @@
   /* DECLARATIONS (local state) */
 
   /* DECLARATIONS (local functions) */
+  const formatSequence = (binString: string) => {
+    if (binString === '') return '';
+
+    const hex = parseInt(binString, 2).toString(16)
+
+    return `0x${hex}`
+  }
   /* STORES (subscriptions) */
   /* LIFECYCLE */
 </script>
@@ -15,7 +22,7 @@
 <div>
   <span>
     [
-      {$allSequences.join(',')}
+      {$allSequences.map(formatSequence).join(',')}
     ]
   </span>
 </div>

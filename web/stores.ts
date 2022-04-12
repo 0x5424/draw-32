@@ -13,6 +13,7 @@ import {
 export const cursorX = writable(1)
 export const cursorY = writable(1)
 export const cursor = derived([cursorX, cursorY], ([$cursorX, $cursorY]) => $cursorX && $cursorY && [$cursorX, $cursorY])
+export const prevCursor = writable([])
 
 export const direction = writable('→')
 export const directionText = derived(direction, $direction => {
@@ -94,16 +95,25 @@ export const patternCoordinates = derived(
       pseudoY = nextPatternStart.y
     })
 
-    // Push most recent coords into last slot
-    out['lastCoords'] = lastCoords
+    // Save next cursor coordinates; NOTE: Must re-decrement due to initial shift
+    pseudoX += incX
+    pseudoY += incY
+    out['nextCursor'] = [pseudoX, pseudoY]
 
     return out
   })
 
 export const insertCoordinates = derived(
-  [cursor, directionText, insertLength],
-  ([$cursor, $directionText, $insertLength]) => {
-    const out = [[], []]
+  [cursor, directionText, insertLength, rotationText],
+  ([$cursor, $directionText, $insertLength, $rotationText]) => {
+    /**
+     * idx0 = pixels visited
+     * idx1 = new cursor position
+     */
+    const out: [
+      [number, number][],
+      [number, number] | []
+    ] = [[], []]
     let [nextX, nextY] = $cursor
 
     for (let i = 0; i < $insertLength; ++i) {
@@ -115,7 +125,10 @@ export const insertCoordinates = derived(
       nextY = lastCoords.y
     }
 
-    out[1] = [nextX, nextY]
+    // NOTE: Final cursor needs final shift +-1 based on _last_ element
+    const nextCursor = getNextCoordinatesFromDirection($rotationText, ...out[0][out[0].length - 1])
+
+    out[1] = [nextCursor.x, nextCursor.y]
 
     return out
   })
