@@ -11,7 +11,7 @@
   /* DECLARATIONS (local state) */
   const currentCell = [cellX, cellY].join(':')
   /* DECLARATIONS (local functions) */
-  const formatCell = (ary) => ary.join(':')
+  const formatCell = (ary: [number, number]) => ary.join(':')
 
   /* STORES (subscriptions) */
   $: isVisited = $visited[currentCell]
@@ -19,7 +19,7 @@
   $: isPatternOne = $drawMode === 'pattern' && $patternCoordinates[0].map(formatCell).includes(currentCell)
   $: isPatternTwo = $drawMode === 'pattern' && $patternCoordinates[1].map(formatCell).includes(currentCell)
   $: isInsertCell = $drawMode === 'insert' && $insertCoordinates[0].map(formatCell).includes(currentCell)
-  $: nextCursor = ($drawMode === 'insert' && $insertCoordinates[1]) || ($drawMode === 'pattern' && $patternCoordinates.nextCursor)
+  $: nextCursor = ($drawMode === 'insert' && $insertCoordinates[1]) || ($drawMode === 'pattern' && $patternCoordinates[2])
   /* LIFECYCLE */
 </script>
 

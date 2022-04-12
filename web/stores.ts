@@ -60,6 +60,8 @@ export const rawPattern = writable('')
 /* Insert controls */
 export const insertLength = writable(1)
 
+type CoordinatesTuple = [number, number] | []
+
 /* Canvas info */
 export const visited = writable({})
 export const patternCoordinates = derived(
@@ -73,7 +75,7 @@ export const patternCoordinates = derived(
     // NOTE: Must decrement pseudocursor by 1 in order to start pattern draw on proper coordinates
     pseudoX -= incX
     pseudoY -= incY
-    const out = {'0': [], '1': []}
+    const out: [CoordinatesTuple[], CoordinatesTuple[], CoordinatesTuple] = [[], [], []]
 
     $rawPattern.split('').forEach(bit => {
       const currentLength = bit === '0' ? $patternOneLength : $patternTwoLength
@@ -98,7 +100,7 @@ export const patternCoordinates = derived(
     // Save next cursor coordinates; NOTE: Must re-decrement due to initial shift
     pseudoX += incX
     pseudoY += incY
-    out['nextCursor'] = [pseudoX, pseudoY]
+    out[2] = [pseudoX, pseudoY]
 
     return out
   })
@@ -137,30 +139,30 @@ export const currentSequence = (() => {
   let value = []
   let subs = []
 
-  const subscribe = (handler) => {
+  const subscribe = (handler: any) => {
     subs = [...subs, handler]
     handler(value)
     return () => subs = subs.filter(sub => sub !== handler)
   }
 
-  /**
-   * Custom `set` validation to throw on overflow
-   */
-  const set = (newInstruction) => {
+  const set = (newInstruction: string[]) => {
+    /**
+     * Custom `set` validation to throw on overflow
+     */
     if (newInstruction.join('').length > 255) throw new Error('Instruction overflow')
 
     value = newInstruction
     subs.forEach(sub => sub(value))
   }
 
-  const update = (update) => set(update(value))
+  const update = (update: any) => set(update(value))
 
   return { subscribe, set, update }
 })()
 
 export const pastSequences = writable([])
 export const allSequences = derived([currentSequence, pastSequences], ([$currentSequence, $pastSequences]: [any, any]) => {
-  const format = (val) => val.join('')
+  const format = (val: string[]) => val.join('')
 
   const past = $pastSequences.map(format)
   const current = $currentSequence.join('')

@@ -6,7 +6,10 @@
   import Form from './Form.svelte'
   import Input from './Input.svelte'
 
-  import { commitRotate, commitInsertDraw, commitJump, performDraw } from '../util/instruction'
+  import {
+    commitRotate, commitInsertDraw, commitJump, performDraw,
+    PerformDrawArguments, Direction
+  } from '../util/instruction'
 
   /* IMPORTS (stores) */
   import {
@@ -19,12 +22,12 @@
   /* DECLARATIONS (local functions) */
   const onFormSubmit = () => {
     if (!$insertLength) return;
-    const drawArgs = {
+    const drawArgs: PerformDrawArguments = {
       drawInstruction: commitInsertDraw({ cw: $cw, length: $insertLength })
     }
 
-    if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText)
-    if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor)
+    if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText as Direction)
+    if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor as [number, number])
 
     $currentSequence = [...$currentSequence, performDraw(drawArgs)]
 

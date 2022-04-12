@@ -123,7 +123,7 @@ export const commitJump = (x: number, y: number) => {
   return ['1', '111', xy].join('')
 }
 
-interface PerformDrawArguments {
+export interface PerformDrawArguments {
   drawInstruction: string;
   rotateInstruction?: string;
   jumpInstruction?: string;
