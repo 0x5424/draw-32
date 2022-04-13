@@ -4,7 +4,7 @@
   /* PROPS */
   /* IMPORTS */
   /* IMPORTS (stores) */
-  import { allSequences } from '../stores'
+  import { pastSequences, currentSequence, allSequences } from '../stores'
   /* DECLARATIONS (local state) */
 
   /* DECLARATIONS (local functions) */
@@ -16,24 +16,32 @@
     return `0x${hex}`
   }
 
-  // const saveSequence = () => {}
+  const saveSequence = () => {
+    $pastSequences = [...$pastSequences, $currentSequence]
+    $currentSequence = []
+  }
   // const undoSequence = () => {}
 
   const logInstructions = () => console.log($allSequences)
   /* STORES (subscriptions) */
+  $: value = `[\n${$allSequences.map(formatSequence).join(',\n')}\n]`
   /* LIFECYCLE */
+
+  // Hack, as eslint does not recognize value being used in component
+  value
 </script>
 
-<div class="instructions">
-  <span>
-    [
-      {$allSequences.map(formatSequence).join(',')}
-    ]
-  </span>
+<div>
+  <textarea
+    {value}
+    readonly
+    rows={$allSequences.length + 2}
+    cols=24
+  />
 </div>
 
 <div>
-  <!-- <button on:click={saveSequence}>Save</button> -->
+  <button on:click={saveSequence}>Save</button>
   <!-- <button on:click={undoSequence}>Undo</button> -->
   <button on:click={logInstructions}>Log</button>
 </div>
@@ -43,10 +51,16 @@
     font-family: monospace;
   }
 
-  .instructions {
+  textarea {
     box-shadow: inset 0 0 1.5px slategrey;
     background-color: #f4f4f4;
     text-align: left;
+    resize: none;
+    outline: none;
+    border:  none;
+    /* Allow textarea width to grow  */
+    word-wrap: normal;
+    word-break: keep-all;
   }
 
   button {
