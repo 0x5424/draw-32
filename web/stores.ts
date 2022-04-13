@@ -139,6 +139,7 @@ export const currentSequence = (() => {
   let value = []
   let subs = []
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const subscribe = (handler: any) => {
     subs = [...subs, handler]
     handler(value)
@@ -149,18 +150,20 @@ export const currentSequence = (() => {
     /**
      * Custom `set` validation to throw on overflow
      */
-    if (newInstruction.join('').length > 255) throw new Error('Instruction overflow')
+    if (newInstruction.join('').length > 255) throw new Error('Instruction will overflow; Refusing write')
 
     value = newInstruction
     subs.forEach(sub => sub(value))
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const update = (update: any) => set(update(value))
 
   return { subscribe, set, update }
 })()
 
 export const pastSequences = writable([])
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const allSequences = derived([currentSequence, pastSequences], ([$currentSequence, $pastSequences]: [any, any]) => {
   const format = (val: string[]) => val.join('')
 

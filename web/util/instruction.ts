@@ -29,6 +29,9 @@ interface InsertInstruction {
   length: number;
 }
 
+export type PatternOneLength = 1 | 2 | 3 | 4;
+export type PatternTwoLength = 2 | 3 | 4 | 5;
+
 /**
  * Raw format: (0, *, 0, ****, N, N)
  *
@@ -41,11 +44,10 @@ interface InsertInstruction {
  */
 export interface PatternInstruction {
   cw: boolean;
-  p1Length: 1 | 2 | 3 | 4;
-  p2Length: 2 | 3 | 4 | 5;
+  p1Length: PatternOneLength;
+  p2Length: PatternTwoLength;
   pattern: string;
 }
-
 
 export const commitInsertDraw = (instruction: InsertInstruction) => {
   const rotation = instruction.cw ? '0' : '1'

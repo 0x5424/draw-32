@@ -9,14 +9,14 @@
 
   /* DECLARATIONS (local functions) */
   const formatSequence = (binString: string) => {
-    if (binString === '') return '';
+    if (binString === '') return ''
 
     const hex = BigInt(`0b${binString}`).toString(16)
 
     return `0x${hex}`
   }
 
-  const saveSequence = () => {}
+  // const saveSequence = () => {}
   // const undoSequence = () => {}
 
   const logInstructions = () => console.log($allSequences)
@@ -33,7 +33,7 @@
 </div>
 
 <div>
-  <button on:click={saveSequence}>Save</button>
+  <!-- <button on:click={saveSequence}>Save</button> -->
   <!-- <button on:click={undoSequence}>Undo</button> -->
   <button on:click={logInstructions}>Log</button>
 </div>

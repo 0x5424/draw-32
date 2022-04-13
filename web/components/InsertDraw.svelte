@@ -21,7 +21,7 @@
   const formId = 'form-insert-draw'
   /* DECLARATIONS (local functions) */
   const onFormSubmit = () => {
-    if (!$insertLength) return;
+    if (!$insertLength) return
     const drawArgs: PerformDrawArguments = {
       drawInstruction: commitInsertDraw({ cw: $cw, length: $insertLength })
     }

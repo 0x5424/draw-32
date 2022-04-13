@@ -8,7 +8,7 @@
 
   import {
     commitRotate, commitPatternDraw, commitJump, performDraw,
-    PerformDrawArguments, Direction
+    PerformDrawArguments, Direction, PatternOneLength, PatternTwoLength
   } from '../util/instruction'
   /* IMPORTS (stores) */
   import {
@@ -23,8 +23,8 @@
     const drawArgs: PerformDrawArguments = {
       drawInstruction: commitPatternDraw({
         cw: $cw,
-        p1Length: $patternOneLength,
-        p2Length: $patternTwoLength,
+        p1Length: $patternOneLength as PatternOneLength,
+        p2Length: $patternTwoLength as PatternTwoLength,
         pattern: $rawPattern,
       })
     }
