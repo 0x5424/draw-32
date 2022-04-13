@@ -135,8 +135,8 @@ export const performDraw = (instructions: PerformDrawArguments) => {
 
   const output = [drawInstruction]
 
-  if (rotateInstruction) output.push(rotateInstruction)
-  if (jumpInstruction) output.push(jumpInstruction)
+  if (rotateInstruction) output.unshift(rotateInstruction)
+  if (jumpInstruction) output.unshift(jumpInstruction)
 
   return output.join('')
 }

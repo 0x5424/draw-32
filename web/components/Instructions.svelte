@@ -27,7 +27,7 @@
   $: value = `[\n${$allSequences.map(formatSequence).join(',\n')}\n]`
   /* LIFECYCLE */
 
-  // Hack, as eslint does not recognize value being used in component
+  // Hack, as eslint does not recognize `value` being used in component
   value
 </script>
 

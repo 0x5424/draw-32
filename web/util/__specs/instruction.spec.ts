@@ -89,9 +89,9 @@ describe('instruction.ts', () => {
       const noRotate = {drawInstruction: 'draw', jumpInstruction: 'Jump'}
 
       expect(performDraw(oneArg)).to.eql('draw')
-      expect(performDraw(twoArgs)).to.eql('drawRotate')
-      expect(performDraw(threeArgs)).to.eql('drawRotateJump')
-      expect(performDraw(noRotate)).to.eql('drawJump')
+      expect(performDraw(twoArgs)).to.eql('Rotatedraw')
+      expect(performDraw(threeArgs)).to.eql('JumpRotatedraw')
+      expect(performDraw(noRotate)).to.eql('Jumpdraw')
     })
   })
 })
