@@ -11,15 +11,20 @@
   const formatSequence = (binString: string) => {
     if (binString === '') return '';
 
-    const hex = parseInt(binString, 2).toString(16)
+    const hex = BigInt(`0b${binString}`).toString(16)
 
     return `0x${hex}`
   }
+
+  const saveSequence = () => {}
+  // const undoSequence = () => {}
+
+  const logInstructions = () => console.log($allSequences)
   /* STORES (subscriptions) */
   /* LIFECYCLE */
 </script>
 
-<div>
+<div class="instructions">
   <span>
     [
       {$allSequences.map(formatSequence).join(',')}
@@ -27,13 +32,28 @@
   </span>
 </div>
 
+<div>
+  <button on:click={saveSequence}>Save</button>
+  <!-- <button on:click={undoSequence}>Undo</button> -->
+  <button on:click={logInstructions}>Log</button>
+</div>
+
 <style>
   div {
+    font-family: monospace;
+  }
+
+  .instructions {
     box-shadow: inset 0 0 1.5px slategrey;
     background-color: #f4f4f4;
     text-align: left;
   }
-  span {
-    font-family: monospace;
+
+  button {
+    border: 2px outset #f4f4f4;
+  }
+
+  button:not(:disabled):active {
+    border: 2px inset #f4f4f4;
   }
 </style>

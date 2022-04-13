@@ -113,7 +113,7 @@ export const commitFill = () => '1110'
  * Raw format: (1, 111, N, N)
  *
  * - `1` = Constant 1; "Command subroutine"
- * - `111` = Constant 110; "Fill w/ current color"
+ * - `111` = Constant 111; "Move cursor/jump"
  * - `N` = Variable; RLE encoded X coordinate
  * - `N` = Variable; RLE encoded Y coordinate
  */
