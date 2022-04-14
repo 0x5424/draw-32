@@ -7,11 +7,15 @@
   import { fade } from 'svelte/transition'
   import { quadInOut as easing } from 'svelte/easing'
   /* IMPORTS (stores) */
-  import { cursor, visited, drawMode, patternCoordinates, insertCoordinates } from '../stores'
+  import { cursor, cursorX, cursorY, visited, drawMode, patternCoordinates, insertCoordinates } from '../stores'
   /* DECLARATIONS (local state) */
   const currentCell = [cellX, cellY].join(':')
   /* DECLARATIONS (local functions) */
   const formatCell = (ary: [number, number]) => ary.join(':')
+  const onClick = () => {
+    $cursorX = cellX
+    $cursorY = cellY
+  }
 
   /* STORES (subscriptions) */
   $: isVisited = $visited[currentCell]
@@ -33,6 +37,7 @@
     class:cell-pattern-two={isPatternTwo}
     class:cell-insert={isInsertCell}
     class:cell-next-cursor={nextCursor?.join(':') === currentCell}
+    on:click={onClick}
   >
     {bit}
   </td>
@@ -44,6 +49,11 @@
     height: 9px;
     padding: 0;
     border: solid 1px rgba(0,0,0, 0);
+  }
+
+  td:hover {
+    border: inset 1px slategrey;
+    cursor: pointer;
   }
 
   .cell-on {
