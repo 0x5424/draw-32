@@ -29,8 +29,7 @@ interface InsertInstruction {
   length: number;
 }
 
-export type PatternOneLength = 1 | 2 | 3 | 4;
-export type PatternTwoLength = 2 | 3 | 4 | 5;
+export type PatternOffset = 1 | 2 | 3 | 4;
 
 /**
  * Raw format: (0, *, 0, ****, N, N)
@@ -44,8 +43,8 @@ export type PatternTwoLength = 2 | 3 | 4 | 5;
  */
 export interface PatternInstruction {
   cw: boolean;
-  p1Length: PatternOneLength;
-  p2Length: PatternTwoLength;
+  p1Length: PatternOffset;
+  p2Offset: PatternOffset;
   pattern: string;
 }
 
@@ -56,12 +55,12 @@ export const commitInsertDraw = (instruction: InsertInstruction) => {
 }
 
 export const commitPatternDraw = (instruction: PatternInstruction) => {
-  const { p1Length, p2Length, pattern } = instruction
+  const { p1Length, p2Offset, pattern } = instruction
 
   const rotation = instruction.cw ? '0' : '1'
   // 00 | 01 | 10 | 11
   const p1 = (p1Length - 1).toString(2).padStart(2, '0')
-  const p2 = (p2Length - 2).toString(2).padStart(2, '0')
+  const p2 = (p2Offset - 1).toString(2).padStart(2, '0')
   const patternLength = encodeRle(pattern.length)
 
   return ['0', rotation, '0', p1, p2, patternLength, pattern].join('')

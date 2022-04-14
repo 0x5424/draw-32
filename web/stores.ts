@@ -54,7 +54,9 @@ export const drawMode = writable('pattern')
 
 /* Pattern controls */
 export const patternOneLength = writable(1)
-export const patternTwoLength = writable(2)
+export const patternTwoOffset = writable(1)
+export const patternTwoLength = derived([patternOneLength, patternTwoOffset], ([$patternOneLength, $patternTwoOffset]) => $patternOneLength + $patternTwoOffset)
+
 export const rawPattern = writable('')
 
 /* Insert controls */

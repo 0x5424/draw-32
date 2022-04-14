@@ -24,17 +24,25 @@ describe('instruction.ts', () => {
 
   describe('#commitPatternDraw()', () => {
     it('succeeds with valid arguments', () => {
-      const cwP1P2: PatternInstruction = {cw: true, p1Length: 1, p2Length: 2, pattern: '00101'} // len: 5
-      const ccwP2P3: PatternInstruction = {cw: false, p1Length: 2, p2Length: 3, pattern: '1100010'} // 7
-      const cwP3P4: PatternInstruction = {cw: true, p1Length: 3, p2Length: 4, pattern: '01'} // 2
-      const ccwP4P5: PatternInstruction = {cw: false, p1Length: 4, p2Length: 5, pattern: '000001000'} // 9
-      const cwP1: PatternInstruction = {cw: true, p1Length: 1, p2Length: 2, pattern: '0000'} // 4
+      const cw1Offset1: PatternInstruction = {cw: true, p1Length: 1, p2Offset: 1, pattern: '010101'}
+      const cw1Offset2: PatternInstruction = {cw: true, p1Length: 1, p2Offset: 2, pattern: '010101'}
+      const cw1Offset3: PatternInstruction = {cw: true, p1Length: 1, p2Offset: 3, pattern: '010101'}
+      const cw1Offset4: PatternInstruction = {cw: true, p1Length: 1, p2Offset: 4, pattern: '010101'}
 
-      expect(commitPatternDraw(cwP1P2)).to.eql('0000000101000101')
-      expect(commitPatternDraw(ccwP2P3)).to.eql('01001011100001100010')
-      expect(commitPatternDraw(cwP3P4)).to.eql('00010100101')
-      expect(commitPatternDraw(ccwP4P5)).to.eql('0101111110010000001000')
-      expect(commitPatternDraw(cwP1)).to.eql('000000010010000')
+      expect(commitPatternDraw(cw1Offset1)).to.eql('0 0 0 00 00 1011 010101'.replace(/ /g, ''))
+      expect(commitPatternDraw(cw1Offset2)).to.eql('00000011011010101')
+      expect(commitPatternDraw(cw1Offset3)).to.eql('00000101011010101')
+      expect(commitPatternDraw(cw1Offset4)).to.eql('00000111011010101')
+
+      const cw2Offset1: PatternInstruction = {cw: true, p1Length: 2, p2Offset: 1, pattern: '010101'}
+      const cw2Offset2: PatternInstruction = {cw: true, p1Length: 2, p2Offset: 2, pattern: '010101'}
+      const cw2Offset3: PatternInstruction = {cw: true, p1Length: 2, p2Offset: 3, pattern: '010101'}
+      const ccw2Offset4: PatternInstruction = {cw: false, p1Length: 2, p2Offset: 4, pattern: '010101'}
+
+      expect(commitPatternDraw(cw2Offset1)).to.eql('0 0 0 01 00 1011 010101'.replace(/ /g, ''))
+      expect(commitPatternDraw(cw2Offset2)).to.eql('00001011011010101')
+      expect(commitPatternDraw(cw2Offset3)).to.eql('00001101011010101')
+      expect(commitPatternDraw(ccw2Offset4)).to.eql('0 1 0 01 11 1011 010101'.replace(/ /g, ''))
     })
   })
 

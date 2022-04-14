@@ -8,23 +8,37 @@
 
   import {
     commitRotate, commitPatternDraw, commitJump, performDraw,
-    PerformDrawArguments, Direction, PatternOneLength, PatternTwoLength
+    PerformDrawArguments, Direction, PatternOffset
   } from '../util/instruction'
   /* IMPORTS (stores) */
   import {
-    cw, patternOneLength, patternTwoLength, rawPattern, direction, directionText, prevDirection,
+    cw, patternOneLength, patternTwoOffset, patternTwoLength, rawPattern, direction, directionText, prevDirection,
     currentSequence, cursor, cursorX, cursorY, prevCursor, visited,
     patternCoordinates
   } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-pattern-draw'
   /* DECLARATIONS (local functions) */
+  const onKeydown = ({ key }) => {
+    if (/(Left|Down|l|d)$/.test(key)) {
+      if ($patternTwoOffset - 1 <= 0) return
+
+      return $patternTwoOffset -= 1
+    }
+
+    if (/(Right|Up|r|u| )$/.test(key)) {
+      if ($patternTwoOffset + 1 >= 5) return
+
+      return $patternTwoOffset += 1
+    }
+  }
+
   const onFormSubmit = () => {
     const drawArgs: PerformDrawArguments = {
       drawInstruction: commitPatternDraw({
         cw: $cw,
-        p1Length: $patternOneLength as PatternOneLength,
-        p2Length: $patternTwoLength as PatternTwoLength,
+        p1Length: $patternOneLength as PatternOffset,
+        p2Offset: $patternTwoOffset as PatternOffset,
         pattern: $rawPattern,
       })
     }
@@ -45,8 +59,6 @@
     $prevDirection = $direction
     $prevCursor = [newX, newY]
     $visited = {...$visited, ...newlyTraversed}
-    $patternOneLength = 1
-    $patternTwoLength = 2
     $rawPattern = ''
   }
 
@@ -58,7 +70,7 @@
 
 <Form id={formId} accesskey="p" flexForm {onFormSubmit} >
   <Input {formId} flexGrow type="number" label="p1" key="pattern-one-length" bind:value={$patternOneLength} max={4} />
-  <Input {formId} flexGrow type="number" label="p2" key="pattern-two-length" bind:value={$patternTwoLength} min={2} max={5} />
+  <Input {formId} readonly flexGrow type="number" label="p2" key="pattern-two-length" {onKeydown} value={$patternTwoLength} min={2} max={8} />
   <Input {formId} type="text" pattern="[0-1]*" label="seq:" key="raw-pattern" bind:value={$rawPattern} noPad/>
 </Form>
 
