@@ -62,6 +62,12 @@ export const rawPattern = writable('')
 /* Insert controls */
 export const insertLength = writable(1)
 
+/* Stroke controls */
+export const strokeWidth = writable(1)
+
+/* Color controls */
+export const color = writable('ffffff')
+
 type CoordinatesTuple = [number, number] | []
 
 /* Canvas info */

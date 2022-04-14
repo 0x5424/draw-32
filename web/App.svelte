@@ -10,6 +10,8 @@
   import InsertDraw from './components/InsertDraw.svelte'
   import Canvas from './components/Canvas.svelte'
   import Instructions from './components/Instructions.svelte'
+  import StrokeWidth from './components/StrokeWidth.svelte'
+  import Color from './components/Color.svelte'
 
   import { EXAMPLE as BITMAP } from './bitmaps'
   import { parseBitmap } from './util/matrix'
@@ -47,6 +49,11 @@
       </div>
     {/if}
 
+    <hr />
+    <div class="stroke-color">
+      <StrokeWidth />
+      <Color />
+    </div>
     <hr />
     <Instructions />
   </section>
@@ -89,6 +96,12 @@
   .rotation-draw {
     display: grid;
     grid-template-columns: 2fr 3fr;
+    column-gap: 2.25em;
+  }
+
+  .stroke-color {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
     column-gap: 2.25em;
   }
 

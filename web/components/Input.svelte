@@ -62,12 +62,14 @@
             on:keydown={onKeydown}
             class:one-char={oneChar}
             class:draw-input={value === 'pattern' || value === 'insert'}
+            class:color-input={key === 'color'}
             type="text"
             id={key}
             name={key}
             {readonly}
             {pattern}
             {autocomplete}
+            autocorrect='false'
           >
         {:else if type === 'textarea'}
           <textarea
@@ -111,6 +113,7 @@
 
   /* TODO: Something more elegant... Styling inputs is a nightmare */
   .draw-input { width: 65px; }
+  .color-input { width: 80px; }
 
   /* Note: styling only applies when no `slot` used */
   textarea, input {
