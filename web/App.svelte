@@ -10,7 +10,7 @@
   import InsertDraw from './components/InsertDraw.svelte'
   import Canvas from './components/Canvas.svelte'
   import Instructions from './components/Instructions.svelte'
-  import StrokeWidth from './components/StrokeWidth.svelte'
+  import StrokeSize from './components/StrokeSize.svelte'
   import Color from './components/Color.svelte'
 
   import { EXAMPLE as BITMAP } from './bitmaps'
@@ -51,7 +51,7 @@
 
     <hr />
     <div class="stroke-color">
-      <StrokeWidth />
+      <StrokeSize />
       <Color />
     </div>
     <hr />

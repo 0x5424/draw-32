@@ -10,7 +10,7 @@
   export let pattern: string | null = null
   export let type: 'number' | 'text' | 'textarea' = 'number'
   export let readonly = false
-  export let autocomplete = 'off'
+  export let disabled = false
 
   /* TODO: R&D to see if this is best way to handle conditional styling in svelte/vue */
   export let flexGrow = false // Expand this input to remaining free space (last-child on parent element not working)
@@ -55,6 +55,7 @@
             {min}
             {max}
             {readonly}
+            {disabled}
           >
         {:else if type === 'text'}
           <input
@@ -68,8 +69,9 @@
             name={key}
             {readonly}
             {pattern}
-            {autocomplete}
-            autocorrect='false'
+            {disabled}
+            autocorrect='off'
+            autocomplete='off'
           >
         {:else if type === 'textarea'}
           <textarea

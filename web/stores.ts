@@ -63,7 +63,7 @@ export const rawPattern = writable('')
 export const insertLength = writable(1)
 
 /* Stroke controls */
-export const strokeWidth = writable(1)
+export const strokeSize = writable(1)
 
 /* Color controls */
 export const color = writable('ffffff')
@@ -169,6 +169,8 @@ export const currentSequence = (() => {
 
   return { subscribe, set, update }
 })()
+
+export const currentSequenceInitialized = derived(currentSequence, $currentSequence => !!$currentSequence[0])
 
 export const pastSequences = writable([])
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

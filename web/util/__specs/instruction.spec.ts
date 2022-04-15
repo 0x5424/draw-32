@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import {
-  commitInsertDraw, commitPatternDraw, commitRotate, commitColor, commitFill, commitJump,
+  commitInsertDraw, commitPatternDraw, commitRotate, commitColor, commitFill, commitJump, commitStrokeSize,
   performDraw,
   PatternInstruction, Direction
 } from '../instruction'
@@ -86,6 +86,13 @@ describe('instruction.ts', () => {
       const coordsBig: [number, number] = [143, 187]
       expect(commitJump(...coordsSmall)).to.eql('1111110001110011')
       expect(commitJump(...coordsBig)).to.eql('11111111110001000011111100111100')
+    })
+  })
+
+  describe('#commitStrokeSize()', () => {
+    it('matches expected output', () => {
+      expect(commitStrokeSize(1)).to.eql('10')
+      expect(commitStrokeSize(3)).to.eql('11')
     })
   })
 

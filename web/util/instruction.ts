@@ -124,6 +124,19 @@ export const commitJump = (x: number, y: number) => {
   return ['1', '111', xy].join('')
 }
 
+/**
+ * Raw format: ^(1, *)
+ *
+ * - `^` = This instruction only appears at the beginning of a new sequence (a header)
+ * - `1` = Constant 1; Hard-coded hack to persist most significant bit
+ * - `*` = Stroke size; `0`` = length 1, `1` = length 3
+ */
+export const commitStrokeSize = (width: 1 | 3) => {
+  const instrWidth = width === 1 ? '0' : '1'
+
+  return ['1', instrWidth].join('')
+}
+
 export interface PerformDrawArguments {
   drawInstruction: string;
   rotateInstruction?: string;
