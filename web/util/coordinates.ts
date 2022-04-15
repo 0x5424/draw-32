@@ -1,4 +1,6 @@
-export const INCREMENTS = {
+import type { DirectionText, RotationText } from '../stores'
+
+export const INCREMENTS: Record<DirectionText | RotationText, [number, number]> = {
   UP: [0, -1],
   LEFT: [-1, 0],
   RIGHT: [1, 0],

@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import {
   commitInsertDraw, commitPatternDraw, commitRotate, commitColor, commitFill, commitJump, commitStrokeSize,
   performDraw,
-  PatternInstruction, Direction
+  PatternInstruction
 } from '../instruction'
 
 describe('instruction.ts', () => {
@@ -48,10 +48,10 @@ describe('instruction.ts', () => {
 
   describe('#commitRotate()', () => {
     it('succeeds with valid arguments', () => {
-      const leftInstruction: Direction = 'LEFT'
-      const downInstruction: Direction = 'DOWN'
-      const rightInstruction: Direction = 'RIGHT'
-      const upInstruction: Direction = 'UP'
+      const leftInstruction = 'LEFT'
+      const downInstruction = 'DOWN'
+      const rightInstruction = 'RIGHT'
+      const upInstruction = 'UP'
 
       expect(commitRotate(upInstruction)).to.eql('1000')
       expect(commitRotate(rightInstruction)).to.eql('1001')

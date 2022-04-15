@@ -8,7 +8,7 @@
 
   import {
     commitRotate, commitPatternDraw, commitJump, commitStrokeSize, performDraw,
-    PerformDrawArguments, Direction, PatternOffset
+    PerformDrawArguments, PatternOffset
   } from '../util/instruction'
   /* IMPORTS (stores) */
   import {
@@ -23,13 +23,13 @@
     if (/(Left|Down|l|d)$/.test(key)) {
       if ($patternTwoOffset - 1 <= 0) return
 
-      return $patternTwoOffset -= 1
+      return $patternTwoOffset -= 1 as 1 | 2 | 3
     }
 
     if (/(Right|Up|r|u| )$/.test(key)) {
       if ($patternTwoOffset + 1 >= 5) return
 
-      return $patternTwoOffset += 1
+      return $patternTwoOffset += 1 as 2 | 3 | 4
     }
   }
 
@@ -43,9 +43,9 @@
       })
     }
 
-    if (!$currentSequenceInitialized) $currentSequence = [commitStrokeSize($strokeSize as 1 | 3)]
+    if (!$currentSequenceInitialized) $currentSequence = [commitStrokeSize($strokeSize)]
 
-    if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText as Direction)
+    if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText)
     if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor as [number, number])
 
     $currentSequence = [...$currentSequence, performDraw(drawArgs)]

@@ -8,7 +8,7 @@
 
   import {
     commitRotate, commitInsertDraw, commitJump, commitStrokeSize, performDraw,
-    PerformDrawArguments, Direction
+    PerformDrawArguments
   } from '../util/instruction'
 
   /* IMPORTS (stores) */
@@ -28,7 +28,7 @@
 
     if (!$currentSequenceInitialized) $currentSequence = [commitStrokeSize($strokeSize as 1 | 3)]
 
-    if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText as Direction)
+    if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText)
     if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor as [number, number])
 
     $currentSequence = [...$currentSequence, performDraw(drawArgs)]

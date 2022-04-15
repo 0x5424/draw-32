@@ -1,4 +1,5 @@
 import { encodeRle } from './encode'
+import type { DirectionText } from '../stores'
 
 /**
  * @todo Consider TS template literal for return types here
@@ -66,7 +67,6 @@ export const commitPatternDraw = (instruction: PatternInstruction) => {
   return ['0', rotation, '0', p1, p2, patternLength, pattern].join('')
 }
 
-export type Direction = 'LEFT' | 'DOWN' | 'RIGHT' | 'UP'
 /**
  * Raw format: (1, 0, **)
  *
@@ -74,7 +74,7 @@ export type Direction = 'LEFT' | 'DOWN' | 'RIGHT' | 'UP'
  * - `0` = Constant 0; "Set rotation"
  * - `**` = 2 bits; U/R/D/L, mapped to 0,1,2,3 in binary
  */
-export const commitRotate = (newDirection: Direction) => {
+export const commitRotate = (newDirection: DirectionText) => {
   const direction = {
     UP: '00',
     RIGHT: '01',
