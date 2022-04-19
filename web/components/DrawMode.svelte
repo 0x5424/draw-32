@@ -13,7 +13,17 @@
   const onKeydown = ({ key }) => {
     if (!/(Left|Down|Right|Up| )$/.test(key)) return
 
-    $drawMode = $drawMode === 'pattern' ? 'insert' : 'pattern'
+    switch ($drawMode) {
+    case 'pattern':
+      $drawMode = 'insert'
+      break
+    case 'insert':
+      $drawMode = 'fill'
+      break
+    case 'fill':
+      $drawMode = 'pattern'
+      break
+    }
   }
   /* STORES (subscriptions) */
   /* LIFECYCLE */

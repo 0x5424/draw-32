@@ -7,7 +7,7 @@
   import { fade } from 'svelte/transition'
   import { quadInOut as easing } from 'svelte/easing'
   /* IMPORTS (stores) */
-  import { cursor, cursorX, cursorY, visited, drawMode, patternCoordinates, insertCoordinates } from '../stores'
+  import { cursor, cursorX, cursorY, visited, drawMode, patternCoordinates, insertCoordinates, fillCells } from '../stores'
   /* DECLARATIONS (local state) */
   const currentCell = [cellX, cellY].join(':')
   /* DECLARATIONS (local functions) */
@@ -23,7 +23,8 @@
   $: isPatternOne = $drawMode === 'pattern' && $patternCoordinates[0].map(formatCell).includes(currentCell)
   $: isPatternTwo = $drawMode === 'pattern' && $patternCoordinates[1].map(formatCell).includes(currentCell)
   $: isInsertCell = $drawMode === 'insert' && $insertCoordinates[0].map(formatCell).includes(currentCell)
-  $: nextCursor = ($drawMode === 'insert' && $insertCoordinates[1]) || ($drawMode === 'pattern' && $patternCoordinates[2])
+  $: nextCursor = ($drawMode === 'insert' && $insertCoordinates[1]) || ($drawMode === 'pattern' && $patternCoordinates[2]) || []
+  $: isFillCell = $drawMode === 'fill' && $fillCells[currentCell]
   /* LIFECYCLE */
 </script>
 
@@ -37,6 +38,7 @@
     class:cell-pattern-two={isPatternTwo}
     class:cell-insert={isInsertCell}
     class:cell-next-cursor={nextCursor?.join(':') === currentCell}
+    class:cell-fill={isFillCell}
     on:click={onClick}
   >
     {bit}
@@ -68,12 +70,22 @@
 
   .cell-cursor {
     border: inset 1px #3d3;
-    background: #4f4;
+    background: #4f4 !important;
   }
 
   .cell-pattern-one { background: skyblue !important; }
   .cell-pattern-two { background: deepskyblue !important; }
   .cell-insert { background: lightsteelblue !important; }
+
+  .cell-fill {
+    background: #bfb;
+    outline: solid 1px #bfb;
+  }
+
+  .cell-fill.cell-on {
+    border: outset 1px #4f4;
+    outline: solid 1px rgba(0,0,0, 0);
+  }
 
   .cell-next-cursor {
     border: inset 1px #faa;

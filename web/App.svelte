@@ -8,6 +8,7 @@
   import DrawMode from './components/DrawMode.svelte'
   import PatternDraw from './components/PatternDraw.svelte'
   import InsertDraw from './components/InsertDraw.svelte'
+  import FillDraw from './components/FillDraw.svelte'
   import Canvas from './components/Canvas.svelte'
   import Instructions from './components/Instructions.svelte'
   import StrokeSize from './components/StrokeSize.svelte'
@@ -16,10 +17,10 @@
   import { EXAMPLE as BITMAP } from './bitmaps'
   import { parseBitmap } from './util/matrix'
   /* IMPORTS (stores) */
-  import { drawMode } from './stores'
+  import { drawMode, matrix } from './stores'
   /* DECLARATIONS (local state) */
   let initialized = false
-  const matrix = parseBitmap(...BITMAP)
+  $matrix = parseBitmap(...BITMAP) /** @todo Allow swapping/custom bitmaps */
   /* DECLARATIONS (local functions) */
   const initializeControls = (): void => { initialized = true }
   /* STORES (subscriptions) */
@@ -47,6 +48,10 @@
       <div in:fade={{ duration: 200 }}>
         <InsertDraw />
       </div>
+    {:else if $drawMode === 'fill'}
+      <div class="fill-draw" in:fade={{ duration: 200 }}>
+        <FillDraw />
+      </div>
     {/if}
 
     <hr />
@@ -58,9 +63,9 @@
     <Instructions />
   </section>
 
-  {#key matrix}
+  {#key $matrix}
     <section in:fade={{ easing }} class="canvas-container">
-      <Canvas {matrix} />
+      <Canvas matrix={$matrix} />
     </section>
   {/key}
 </main>
@@ -103,6 +108,10 @@
     display: grid;
     grid-template-columns: 1fr 1.5fr;
     column-gap: 2.25em;
+  }
+
+  .fill-draw {
+    margin: 0 auto;
   }
 
   section.canvas-container { margin: 0 auto auto; }

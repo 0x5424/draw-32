@@ -62,7 +62,7 @@
             bind:value
             on:keydown={onKeydown}
             class:one-char={oneChar}
-            class:draw-input={value === 'pattern' || value === 'insert'}
+            class:draw-input={/^(pattern|insert|fill)$/.test(`${value}`)}
             class:color-input={key === 'color'}
             type="text"
             id={key}

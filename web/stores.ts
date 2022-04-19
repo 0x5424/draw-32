@@ -1,10 +1,12 @@
 import { writable, derived, Writable, Readable } from 'svelte/store'
 
 import type { PatternOffset } from './util/instruction'
+import type { MatrixCell } from './util/matrix'
 
 import {
   INCREMENTS,
-  getNextCoordinatesFromDirection
+  getNextCoordinatesFromDirection,
+  getSurroundingCoordinates
 } from './util/coordinates'
 
 interface Coordinates {
@@ -18,6 +20,8 @@ type DirectionArrow = '←' | '↓' | '→' | '↑'
 export type DirectionText = 'LEFT' | 'DOWN' | 'RIGHT' | 'UP'
 type RotationArrow ='↙' | '↘' | '↗' | '↖'
 export type RotationText ='UP_LEFT' | 'UP_RIGHT' | 'DOWN_LEFT' | 'DOWN_RIGHT'
+
+export const matrix: Writable<MatrixCell[][]> = writable([[]])
 
 export const cursorX: Writable<number> = writable(1)
 export const cursorY: Writable<number> = writable(1)
@@ -63,8 +67,8 @@ export const rotationIncrements = derived<Readable<RotationText>, [number, numbe
   return INCREMENTS[$rotationText]
 })
 
-type DrawModes = 'pattern' | 'insert'
-export const drawMode: Writable<DrawModes> = writable('pattern')
+type DrawModes = 'pattern' | 'insert' | 'fill'
+export const drawMode: Writable<DrawModes> = writable('fill')
 
 /* Pattern controls */
 export const patternOneLength: Writable<PatternOffset> = writable(1)
@@ -76,17 +80,66 @@ export const patternTwoLength = derived<PatternTwoLengthStore, PatternTwoLength>
 
 export const rawPattern: Writable<string> = writable('')
 
+/* Color controls */
+export const color: Writable<string> = writable('000000')
+
 /* Insert controls */
 export const insertLength: Writable<number> = writable(1)
 
 /* Stroke controls */
 export const strokeSize: Writable<1 | 3> = writable(1)
 
-/* Color controls */
-export const color: Writable<string> = writable('000000')
-
 /* Canvas info */
 export const visited: Writable<Record<string, boolean>> = writable({})
+
+/* Fill info */
+/** @todo Performance */
+/** @todo Revisit when canvas persists color data */
+// type FillCellsStore = [Readable<CoordinatesTuple>, Readable<string>, Readable<MatrixCell[][]>]
+// export const fillCells = derived<FillCellsStore, Record<string, boolean>>([cursor, color, matrix], ([$cursor, $color, $matrix]) => {
+type FillCellsStore = [Readable<CoordinatesTuple>, Readable<MatrixCell[][]>]
+export const fillCells = derived<FillCellsStore, Record<string, boolean>>([cursor, matrix], ([$cursor, $matrix]) => {
+  const maxHeight = $matrix.length
+  const maxWidth = $matrix[0].length
+  // Guard clause for uninitialized matrix
+  if (maxWidth === 0) return
+
+  // Init output
+  const out = {}
+
+  // Normalize cursor, as the matrix will use 0-indexed values
+  const currentX = $cursor[0] - 1
+  const currentY = $cursor[1] - 1
+
+  // @todo Update when $matrix persists colors
+  // const startColor = $matrix[$cursor[0] - 1][$cursor[1] - 1].bit === '1' ? '000000' : 'ffffff'
+  const startColor = $matrix[currentY][currentX]?.bit || '0'
+
+  // Initialize the cells to check
+  const initialCoordinates = [[currentX, currentY]] as [number, number][]
+  const recurse = (stack: [number, number][]) => {
+    if (stack.length === 0) return
+    const [x, y] = stack.pop()
+
+    getSurroundingCoordinates(x, y).forEach(([possibleX, possibleY]) => {
+      if (possibleX < 0 || possibleY < 0) return // Underflow
+      if (possibleX >= maxWidth || possibleY >= maxHeight) return // Overflow
+      if ($matrix[possibleY][possibleX].bit !== startColor) return // New color
+
+      const possibleCoord = [possibleX + 1, possibleY + 1].join(':')
+      if (out[possibleCoord]) return // Already included (identity)
+
+      // Else, add to output hash & stack
+      out[possibleCoord] = startColor
+      stack.push([possibleX, possibleY])
+    })
+
+    recurse(stack)
+  }
+  recurse(initialCoordinates)
+
+  return out
+})
 
 type PatternCoordinatesStore = [
   Readable<CoordinatesTuple>, // Cursor

@@ -19,3 +19,18 @@ export const getNextCoordinatesFromDirection = (direction: string, x: number, y:
 
   return {direction, x: outX, y: outY}
 }
+
+type XY = [number, number]
+/**
+ * Returns a tuple of CoordinateTuples: [U, R, D, L]
+ */
+export const getSurroundingCoordinates = (x: number, y: number): [XY, XY, XY, XY] => {
+  const surroundingIncrements: [XY, XY, XY, XY] = [
+    INCREMENTS.UP,
+    INCREMENTS.RIGHT,
+    INCREMENTS.DOWN,
+    INCREMENTS.LEFT
+  ]
+
+  return surroundingIncrements.map(([xInc, yInc]) => [x + xInc, y + yInc]) as [XY, XY, XY, XY]
+}

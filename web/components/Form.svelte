@@ -5,6 +5,8 @@
   export let id: string
   export let flexForm = false
   export let accesskey: string | null = null
+  export let showSubmit = false
+  export let submitText = 'Submit'
   export let onFormSubmit = ({ target }): void => {
     const data = new FormData(target)
     console.warn('NOTE: No form handler supplied.')
@@ -32,7 +34,7 @@
   <slot></slot>
 
   <!-- svelte-ignore a11y-accesskey -->
-  <input type="submit" {accesskey}>
+  <input class:hidden={!showSubmit} type="submit" value={submitText} {accesskey}>
 </form>
 
 <style>
@@ -48,5 +50,13 @@
   }
   form:focus-within { outline: 0.8px solid black; }
 
-  input[type="submit"] { display: none; }
+  .hidden { display: none; }
+  input:not(.hidden)[type="submit"] {
+    font-family: monospace;
+    border: none;
+    margin: 0.2em;
+    padding: 1em;
+    background-color: #f4f4f4;
+    outline: none;
+  }
 </style>
