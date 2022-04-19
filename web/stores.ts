@@ -68,7 +68,7 @@ export const rotationIncrements = derived<Readable<RotationText>, [number, numbe
 })
 
 type DrawModes = 'pattern' | 'insert' | 'fill'
-export const drawMode: Writable<DrawModes> = writable('fill')
+export const drawMode: Writable<DrawModes> = writable('pattern')
 
 /* Pattern controls */
 export const patternOneLength: Writable<PatternOffset> = writable(1)
@@ -91,6 +91,20 @@ export const strokeSize: Writable<1 | 3> = writable(1)
 
 /* Canvas info */
 export const visited: Writable<Record<string, boolean>> = writable({})
+export const canvas = derived<[Readable<MatrixCell[][]>, Readable<Record<string, boolean>>], MatrixCell[][]>([matrix, visited], ([$matrix, $visited]) => {
+  // Output a new canvas, with all visited cells set
+  return $matrix.map((row, i) => {
+    return row.map(({ x, y }) => {
+      return {
+        x,
+        y,
+        i,
+        bit: $visited[[x, y].join(':')] ? '1' : '0'
+        /** @todo Revisit when colors persisted */
+      } as MatrixCell
+    })
+  })
+})
 
 /* Fill info */
 /** @todo Performance */
@@ -98,9 +112,9 @@ export const visited: Writable<Record<string, boolean>> = writable({})
 // type FillCellsStore = [Readable<CoordinatesTuple>, Readable<string>, Readable<MatrixCell[][]>]
 // export const fillCells = derived<FillCellsStore, Record<string, boolean>>([cursor, color, matrix], ([$cursor, $color, $matrix]) => {
 type FillCellsStore = [Readable<CoordinatesTuple>, Readable<MatrixCell[][]>]
-export const fillCells = derived<FillCellsStore, Record<string, boolean>>([cursor, matrix], ([$cursor, $matrix]) => {
-  const maxHeight = $matrix.length
-  const maxWidth = $matrix[0].length
+export const fillCells = derived<FillCellsStore, Record<string, boolean>>([cursor, canvas], ([$cursor, $canvas]) => {
+  const maxHeight = $canvas.length
+  const maxWidth = $canvas[0].length
   // Guard clause for uninitialized matrix
   if (maxWidth === 0) return
 
@@ -111,9 +125,9 @@ export const fillCells = derived<FillCellsStore, Record<string, boolean>>([curso
   const currentX = $cursor[0] - 1
   const currentY = $cursor[1] - 1
 
-  // @todo Update when $matrix persists colors
-  // const startColor = $matrix[$cursor[0] - 1][$cursor[1] - 1].bit === '1' ? '000000' : 'ffffff'
-  const startColor = $matrix[currentY][currentX]?.bit || '0'
+  // @todo Update when $canvas persists colors
+  // const startColor = $canvas[$cursor[0] - 1][$cursor[1] - 1].bit === '1' ? '000000' : 'ffffff'
+  const startColor = $canvas[currentY][currentX]?.bit || '0'
 
   // Initialize the cells to check
   const initialCoordinates = [[currentX, currentY]] as [number, number][]
@@ -124,7 +138,7 @@ export const fillCells = derived<FillCellsStore, Record<string, boolean>>([curso
     getSurroundingCoordinates(x, y).forEach(([possibleX, possibleY]) => {
       if (possibleX < 0 || possibleY < 0) return // Underflow
       if (possibleX >= maxWidth || possibleY >= maxHeight) return // Overflow
-      if ($matrix[possibleY][possibleX].bit !== startColor) return // New color
+      if ($canvas[possibleY][possibleX].bit !== startColor) return // New color
 
       const possibleCoord = [possibleX + 1, possibleY + 1].join(':')
       if (out[possibleCoord]) return // Already included (identity)

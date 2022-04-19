@@ -4,7 +4,7 @@
   /* PROPS */
   /* IMPORTS */
   /* IMPORTS (stores) */
-  import { pastSequences, currentSequence, allSequences } from '../stores'
+  import { pastSequences, currentSequence, allSequences, canvas } from '../stores'
   /* DECLARATIONS (local state) */
 
   /* DECLARATIONS (local functions) */
@@ -22,7 +22,11 @@
   }
   // const undoSequence = () => {}
 
-  const logInstructions = () => console.log($allSequences)
+  const logState = () => {
+    console.log('INSTRUCTIONS:', $allSequences)
+
+    console.log('CANVAS:', $canvas.map(row => row.map(({ bit }) => bit).join('')).join('\n'))
+  }
   /* STORES (subscriptions) */
   $: value = `[\n${$allSequences.map(formatSequence).join(',\n')}\n]`
   /* LIFECYCLE */
@@ -43,7 +47,7 @@
 <div>
   <button on:click={saveSequence}>Save</button>
   <!-- <button on:click={undoSequence}>Undo</button> -->
-  <button on:click={logInstructions}>Log</button>
+  <button on:click={logState}>Log</button>
 </div>
 
 <style>
