@@ -16,23 +16,34 @@
     $cursorX = cellX
     $cursorY = cellY
   }
+  const transformColor = (str: string, outline = false) => {
+    if (str === 'alpha') return false
+    if (!/^[0-9a-f]{6}$/.test(str)) throw new Error('invalid color format')
+
+    const rgb = str.match(/[0-9a-f]{2}/g)
+    if (!outline) return `#${rgb.join('')}`
+
+    return `rgba(${rgb.map(color => parseInt(color, 16)).join()}, 0.5)`
+  }
 
   /* STORES (subscriptions) */
-  $: isVisited = $visited[currentCell]
+  $: visitedColor = $visited[currentCell]
   $: isCursor = $cursor.join(':') === currentCell
   $: isPatternOne = $drawMode === 'pattern' && $patternCoordinates[0].map(formatCell).includes(currentCell)
   $: isPatternTwo = $drawMode === 'pattern' && $patternCoordinates[1].map(formatCell).includes(currentCell)
   $: isInsertCell = $drawMode === 'insert' && $insertCoordinates[0].map(formatCell).includes(currentCell)
   $: nextCursor = ($drawMode === 'insert' && $insertCoordinates[1]) || ($drawMode === 'pattern' && $patternCoordinates[2]) || []
   $: isFillCell = $drawMode === 'fill' && $fillCells[currentCell]
+  $: style = visitedColor && transformColor(visitedColor) && `background-color: ${transformColor(visitedColor)}; outline: solid 1px ${transformColor(visitedColor, true)}`
   /* LIFECYCLE */
 </script>
 
 {#key isPatternOne || isPatternTwo || isInsertCell}
   <td
     in:fade={{ easing, duration: 80 }}
+    {style}
     class:cell-on={bit === '1'}
-    class:cell-visited={isVisited}
+    class:cell-visited={!!visitedColor}
     class:cell-cursor={isCursor}
     class:cell-pattern-one={isPatternOne}
     class:cell-pattern-two={isPatternTwo}
@@ -54,19 +65,16 @@
   }
 
   td:hover {
-    border: inset 1px slategrey;
+    outline: inset 1px slategrey;
     cursor: pointer;
   }
 
-  .cell-on {
+  .cell-on:not(.cell-visited) {
     border: outset 1px slategrey;
     background: #bbb;
   }
 
-  .cell-visited {
-    background: #444;
-    color: #eee;
-  }
+  .cell-visited { color: rgba(0,0,0, 0) }
 
   .cell-cursor {
     border: inset 1px #3d3;
