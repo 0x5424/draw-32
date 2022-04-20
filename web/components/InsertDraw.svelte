@@ -15,7 +15,7 @@
   import {
     cw, insertLength, direction, directionText, prevDirection,
     cursor, cursorX, cursorY, prevCursor, visited, currentSequenceInitialized, strokeSize,
-    currentSequence, insertCoordinates
+    currentSequence, insertCoordinates, toVisit
   } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-insert-draw'
@@ -35,14 +35,12 @@
 
     // Lastly, set new coords, set pixels & reset form values
     const [newX, newY] = $insertCoordinates[1]
-    const newlyTraversed = {}
-    $insertCoordinates[0].map(([x, y]) => newlyTraversed[`${x}:${y}`] = true)
 
-    $cursorX = newX
-    $cursorY = newY
+    $visited = {...$visited, ...$toVisit}
     $prevDirection = $direction
     $prevCursor = [newX, newY]
-    $visited = {...$visited, ...newlyTraversed}
+    $cursorX = newX
+    $cursorY = newY
     $insertLength = 1
   }
   /* STORES (subscriptions) */

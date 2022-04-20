@@ -67,8 +67,8 @@ export const rotationIncrements = derived<Readable<RotationText>, [number, numbe
   return INCREMENTS[$rotationText]
 })
 
-type DrawModes = 'pattern' | 'insert' | 'fill'
-export const drawMode: Writable<DrawModes> = writable('pattern')
+type DrawMode = 'pattern' | 'insert' | 'fill'
+export const drawMode: Writable<DrawMode> = writable('pattern')
 
 /* Pattern controls */
 export const patternOneLength: Writable<PatternOffset> = writable(1)
@@ -135,7 +135,7 @@ export const fillCells = derived<FillCellsStore, Record<string, boolean>>([curso
     if (stack.length === 0) return
     const [x, y] = stack.pop()
 
-    getSurroundingCoordinates(x, y).forEach(([possibleX, possibleY]) => {
+    Object.values(getSurroundingCoordinates(x, y)).forEach(([possibleX, possibleY]) => {
       if (possibleX < 0 || possibleY < 0) return // Underflow
       if (possibleX >= maxWidth || possibleY >= maxHeight) return // Overflow
       if ($canvas[possibleY][possibleX].bit !== startColor) return // New color
@@ -267,6 +267,57 @@ export const currentSequence: Writable<string[]> = (() => {
 
   return { subscribe, set, update }
 })()
+
+type ToVisitStore = [
+  Readable<1 | 3>,
+  Readable<string>,
+  Readable<DirectionText>,
+  Readable<DrawMode>,
+  Readable<PatternCoordinatesResult>,
+  Readable<InsertCoordinatesResult>
+]
+export const toVisit = derived<ToVisitStore, Record<string, boolean>>(
+  [strokeSize, color, directionText, drawMode, patternCoordinates, insertCoordinates],
+  ([$strokeSize, $color, $directionText, $drawMode, $patternCoordinates, $insertCoordinates]) => {
+    const getStrokeCells = (inputX: number, inputY: number): [CoordinatesTuple, CoordinatesTuple, CoordinatesTuple] | [CoordinatesTuple] => {
+      const baseCell = [inputX, inputY] as CoordinatesTuple
+
+      if ($strokeSize === 1) return [baseCell]
+
+      // Depending on rotation, we use only 2 of the surrounding coordinates
+      const extraCells = {
+        LEFT: ['UP', 'DOWN'] as DirectionText[],
+        RIGHT: ['UP', 'DOWN'] as DirectionText[],
+        UP: ['LEFT', 'RIGHT'] as DirectionText[],
+        DOWN: ['LEFT', 'RIGHT'] as DirectionText[],
+      }[$directionText].map(dir => {
+        const { x, y } = getNextCoordinatesFromDirection(dir, inputX, inputY)
+
+        return [x, y]
+      }) as [CoordinatesTuple, CoordinatesTuple]
+
+      return [baseCell, ...extraCells]
+    }
+
+    const out = {}
+
+    switch ($drawMode) {
+    case 'insert':
+      $insertCoordinates[0].map(([insertX, insertY]) => {
+        getStrokeCells(insertX, insertY).forEach(([x, y]) => out[`${x}:${y}`] = $color)
+      })
+      break
+    case 'pattern':
+      [...$patternCoordinates[0], ...$patternCoordinates[1]].forEach(([patternX, patternY]) => {
+        getStrokeCells(patternX, patternY).forEach(([x, y]) => out[`${x}:${y}`] = $color)
+      })
+      break
+    default:
+      break
+    }
+
+    return out
+  })
 
 export const currentSequenceInitialized = derived<Readable<string[]>, boolean>(currentSequence, $currentSequence => !!$currentSequence[0])
 

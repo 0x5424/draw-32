@@ -14,7 +14,7 @@
   import {
     cw, patternOneLength, patternTwoOffset, patternTwoLength, rawPattern, direction, directionText, prevDirection,
     currentSequence, cursor, cursorX, cursorY, prevCursor, visited, currentSequenceInitialized, strokeSize,
-    patternCoordinates
+    patternCoordinates, toVisit
   } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-pattern-draw'
@@ -43,6 +43,7 @@
       })
     }
 
+
     if (!$currentSequenceInitialized) $currentSequence = [commitStrokeSize($strokeSize)]
 
     if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText)
@@ -52,15 +53,12 @@
 
     // Lastly, set new coords, set pixels & reset form values
     const [newX, newY] = $patternCoordinates[2]
-    const newlyTraversed = {}
-    $patternCoordinates[0].map(([x, y]) => newlyTraversed[`${x}:${y}`] = true)
-    $patternCoordinates[1].map(([x, y]) => newlyTraversed[`${x}:${y}`] = true)
 
-    $cursorX = newX
-    $cursorY = newY
+    $visited = {...$visited, ...$toVisit}
     $prevDirection = $direction
     $prevCursor = [newX, newY]
-    $visited = {...$visited, ...newlyTraversed}
+    $cursorX = newX
+    $cursorY = newY
     $rawPattern = ''
   }
 

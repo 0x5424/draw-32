@@ -1,6 +1,8 @@
 import type { DirectionText, RotationText } from '../stores'
 
-export const INCREMENTS: Record<DirectionText | RotationText, [number, number]> = {
+type XY = [number, number]
+
+export const INCREMENTS: Record<DirectionText | RotationText, XY> = {
   UP: [0, -1],
   LEFT: [-1, 0],
   RIGHT: [1, 0],
@@ -11,7 +13,7 @@ export const INCREMENTS: Record<DirectionText | RotationText, [number, number]> 
   DOWN_RIGHT: [1, 1],
 }
 
-export const getNextCoordinatesFromDirection = (direction: string, x: number, y: number) => {
+export const getNextCoordinatesFromDirection = (direction: DirectionText | RotationText, x: number, y: number) => {
   const [xInc, yInc] = INCREMENTS[direction]
 
   const outX = x + xInc
@@ -20,17 +22,15 @@ export const getNextCoordinatesFromDirection = (direction: string, x: number, y:
   return {direction, x: outX, y: outY}
 }
 
-type XY = [number, number]
 /**
  * Returns a tuple of CoordinateTuples: [U, R, D, L]
  */
-export const getSurroundingCoordinates = (x: number, y: number): [XY, XY, XY, XY] => {
-  const surroundingIncrements: [XY, XY, XY, XY] = [
-    INCREMENTS.UP,
-    INCREMENTS.RIGHT,
-    INCREMENTS.DOWN,
-    INCREMENTS.LEFT
-  ]
+export const getSurroundingCoordinates = (inputX: number, inputY: number): Record<DirectionText, XY> => {
+  const entries = ['UP', 'RIGHT', 'DOWN', 'LEFT'].map((dir: DirectionText) => {
+    const { x, y } = getNextCoordinatesFromDirection(dir, inputX, inputY)
 
-  return surroundingIncrements.map(([xInc, yInc]) => [x + xInc, y + yInc]) as [XY, XY, XY, XY]
+    return [dir, [x, y]]
+  })
+
+  return Object.fromEntries(entries)
 }
