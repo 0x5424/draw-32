@@ -290,27 +290,39 @@ type ToVisitStore = [
   Readable<DirectionText>,
   Readable<DrawMode>,
   Readable<PatternCoordinatesResult>,
-  Readable<InsertCoordinatesResult>
+  Readable<InsertCoordinatesResult>,
+  Readable<CanvasLike>
 ]
 export const toVisit = derived<ToVisitStore, Record<string, string>>(
-  [strokeSize, color, directionText, drawMode, patternCoordinates, insertCoordinates],
-  ([$strokeSize, $color, $directionText, $drawMode, $patternCoordinates, $insertCoordinates]) => {
-    const getStrokeCells = (inputX: number, inputY: number): [CoordinatesTuple, CoordinatesTuple, CoordinatesTuple] | [CoordinatesTuple] => {
+  [strokeSize, color, directionText, drawMode, patternCoordinates, insertCoordinates, visited],
+  ([$strokeSize, $color, $directionText, $drawMode, $patternCoordinates, $insertCoordinates, $visited]) => {
+    const getStrokeCells = (inputX: number, inputY: number): CoordinatesTuple[] => {
       const baseCell = [inputX, inputY] as CoordinatesTuple
 
       if ($strokeSize === 1) return [baseCell]
 
-      // Depending on rotation, we use only 2 of the surrounding coordinates
-      const extraCells = {
-        LEFT: ['UP', 'DOWN'] as DirectionText[],
-        RIGHT: ['UP', 'DOWN'] as DirectionText[],
-        UP: ['LEFT', 'RIGHT'] as DirectionText[],
-        DOWN: ['LEFT', 'RIGHT'] as DirectionText[],
-      }[$directionText].map(dir => {
-        const { x, y } = getNextCoordinatesFromDirection(dir, inputX, inputY)
+      // Depending on rotation & already filled in squares, we will use only 2 surrounding coordinates
+      let inserted = 0
+      const orderedCoordinates = Object.entries(getSurroundingCoordinates(inputX, inputY)).sort((a, b) => {
+        const table = {
+          LEFT: ['UP', 'DOWN', 'RIGHT', 'LEFT'],
+          RIGHT: ['UP', 'DOWN', 'LEFT','RIGHT'],
+          UP: ['LEFT', 'RIGHT', 'DOWN', 'UP'],
+          DOWN: ['LEFT', 'RIGHT', 'UP', 'DOWN'],
+        }[$directionText]
 
+        return table.indexOf(a[0]) - table.indexOf(b[0])
+      })
+
+      const extraCells = orderedCoordinates.map(([, coords]) => {
+        if (inserted >= 2) return
+
+        const [x, y] = coords
+        if ($visited[`${x}:${y}`] === $color) return // Skip if we've already filled it with same color
+
+        inserted++
         return [x, y]
-      }) as [CoordinatesTuple, CoordinatesTuple]
+      }).filter(Boolean) as CoordinatesTuple[]
 
       return [baseCell, ...extraCells]
     }
