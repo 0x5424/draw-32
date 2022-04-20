@@ -113,44 +113,37 @@ export const insertLength: Writable<number> = writable(1)
 export const strokeSize: Writable<1 | 3> = writable(1)
 
 /* Canvas info */
-export const visited: Writable<Record<string, boolean>> = writable({})
-export const canvas = derived<[Readable<MatrixCell[][]>, Readable<Record<string, boolean>>], MatrixCell[][]>([matrix, visited], ([$matrix, $visited]) => {
-  // Output a new canvas, with all visited cells set
-  return $matrix.map((row, i) => {
-    return row.map(({ x, y }) => {
-      return {
-        x,
-        y,
-        i,
-        bit: $visited[[x, y].join(':')] ? '1' : '0'
-        /** @todo Revisit when colors persisted */
-      } as MatrixCell
-    })
+type MatrixLike = MatrixCell[][]
+type CanvasLike = Record<string, string>
+export const visited: Writable<CanvasLike> = writable({})
+export const canvas = derived<[Readable<MatrixLike>, Readable<CanvasLike>], CanvasLike>([matrix, visited], ([$matrix, $visited]) => {
+  // Output a new canvas with all visited cells set
+  const out = {}
+  const BG_COLOR = 'alpha' /** @todo Move to constant (hard-coded BACKGROUND_COLOR) */
+
+  $matrix.forEach(row => {
+    row.forEach(({ x, y }) => out[[x, y].join(':')] = $visited[[x, y].join(':')] || BG_COLOR)
   })
+
+  return out
 })
 
 /* Fill info */
 /** @todo Performance */
-/** @todo Revisit when canvas persists color data */
-// type FillCellsStore = [Readable<CoordinatesTuple>, Readable<string>, Readable<MatrixCell[][]>]
-// export const fillCells = derived<FillCellsStore, Record<string, boolean>>([cursor, color, matrix], ([$cursor, $color, $matrix]) => {
-type FillCellsStore = [Readable<CoordinatesTuple>, Readable<MatrixCell[][]>]
-export const fillCells = derived<FillCellsStore, Record<string, boolean>>([cursor, canvas], ([$cursor, $canvas]) => {
-  const maxHeight = $canvas.length
-  const maxWidth = $canvas[0].length
+type FillCellsStore = [Readable<CoordinatesTuple>, Readable<MatrixLike>, Readable<string>, Readable<CanvasLike>]
+export const fillCells = derived<FillCellsStore, CanvasLike>([cursor, matrix, color, canvas], ([$cursor, $matrix, $color, $canvas]) => {
+  const maxHeight = $matrix.length
+  const maxWidth = $matrix[0].length
   // Guard clause for uninitialized matrix
   if (maxWidth === 0) return
 
   // Init output
   const out = {}
+  const startColor: string = $canvas[$cursor.join(':')]
 
   // Normalize cursor, as the matrix will use 0-indexed values
   const currentX = $cursor[0] - 1
   const currentY = $cursor[1] - 1
-
-  // @todo Update when $canvas persists colors
-  // const startColor = $canvas[$cursor[0] - 1][$cursor[1] - 1].bit === '1' ? '000000' : 'ffffff'
-  const startColor = $canvas[currentY][currentX]?.bit || '0'
 
   // Initialize the cells to check
   const initialCoordinates = [[currentX, currentY]] as [number, number][]
@@ -161,13 +154,13 @@ export const fillCells = derived<FillCellsStore, Record<string, boolean>>([curso
     Object.values(getSurroundingCoordinates(x, y)).forEach(([possibleX, possibleY]) => {
       if (possibleX < 0 || possibleY < 0) return // Underflow
       if (possibleX >= maxWidth || possibleY >= maxHeight) return // Overflow
-      if ($canvas[possibleY][possibleX].bit !== startColor) return // New color
 
       const possibleCoord = [possibleX + 1, possibleY + 1].join(':')
+      if ($canvas[possibleCoord] !== startColor) return // New color
       if (out[possibleCoord]) return // Already included (identity)
 
       // Else, add to output hash & stack
-      out[possibleCoord] = startColor
+      out[possibleCoord] = $color
       stack.push([possibleX, possibleY])
     })
 
@@ -299,7 +292,7 @@ type ToVisitStore = [
   Readable<PatternCoordinatesResult>,
   Readable<InsertCoordinatesResult>
 ]
-export const toVisit = derived<ToVisitStore, Record<string, boolean>>(
+export const toVisit = derived<ToVisitStore, Record<string, string>>(
   [strokeSize, color, directionText, drawMode, patternCoordinates, insertCoordinates],
   ([$strokeSize, $color, $directionText, $drawMode, $patternCoordinates, $insertCoordinates]) => {
     const getStrokeCells = (inputX: number, inputY: number): [CoordinatesTuple, CoordinatesTuple, CoordinatesTuple] | [CoordinatesTuple] => {

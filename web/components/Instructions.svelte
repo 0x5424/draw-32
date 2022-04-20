@@ -25,7 +25,7 @@
   const logState = () => {
     console.log('INSTRUCTIONS:', $allSequences)
 
-    console.log('CANVAS:', $canvas.map(row => row.map(({ bit }) => bit).join('')).join('\n'))
+    console.log('CANVAS:', $canvas)
   }
   /* STORES (subscriptions) */
   $: value = `[\n${$allSequences.map(formatSequence).join(',\n')}\n]`

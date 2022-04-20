@@ -17,9 +17,11 @@
 
   /** @todo Dynamic palette */
   const COLOR_INDEX = [
-    '000000', // 0
-    ...(new Array(14)) as Tuple<unknown, 14>,
-    'ffffff', // 15
+    'ffffff', // 0; 'White'
+    '000000', // 1; 'Black'
+    'fd7aa0', // 2; 'Pink'
+    ...(new Array(12)) as Tuple<unknown, 12>,
+    'alpha', // 15; 'Transparent/BG'
   ] as Tuple<string, 16> // NOTE: Even with a Tuple, Typescript is unable to resolve `indexOf` returning between 0-15 (and -1)
   /* DECLARATIONS (local functions) */
   const onFormSubmit = () => {
