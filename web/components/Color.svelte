@@ -2,17 +2,38 @@
   /* IMPORTS */
   import Form from './Form.svelte'
   import Input from './Input.svelte'
+  import {
+    commitColor, commitStrokeSize,
+    ColorIndex
+  } from '../util/instruction'
   /* PROPS */
   /* IMPORTS (stores) */
-  import { color } from '../stores'
+  import { color, currentSequence, currentSequenceInitialized, strokeSize } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-stroke-width'
+
+  /** @todo Make global */
+  type Tuple<T, N extends number, R extends T[] = []> = N extends R['length'] ? R : Tuple<T, N, [...R, T]>
+
+  /** @todo Dynamic palette */
+  const COLOR_INDEX = [
+    '000000', // 0
+    ...(new Array(14)) as Tuple<unknown, 14>,
+    'ffffff', // 15
+  ] as Tuple<string, 16> // NOTE: Even with a Tuple, Typescript is unable to resolve `indexOf` returning between 0-15 (and -1)
   /* DECLARATIONS (local functions) */
+  const onFormSubmit = () => {
+    const newColorIndex = COLOR_INDEX.indexOf($color)
+    if (newColorIndex < 0 || newColorIndex >= 16) return
+
+    if (!$currentSequenceInitialized) $currentSequence = [commitStrokeSize($strokeSize)]
+    $currentSequence = [...$currentSequence, commitColor(newColorIndex as ColorIndex)]
+  }
   /* STORES (subscriptions) */
   /* LIFECYCLE */
 </script>
 
-<Form id={formId}>
+<Form id={formId} {onFormSubmit}>
   <Input {formId} type="text" key="color" bind:value={$color} noPad />
 </Form>
 

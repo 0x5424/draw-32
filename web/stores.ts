@@ -78,7 +78,30 @@ type PatternTwoLength = 2 | 3 | 4 | 5 | 6 | 7 | 8
 type PatternTwoLengthStore = [Readable<PatternOffset>, Readable<PatternOffset>]
 export const patternTwoLength = derived<PatternTwoLengthStore, PatternTwoLength>([patternOneLength, patternTwoOffset], ([$patternOneLength, $patternTwoOffset]) => $patternOneLength + $patternTwoOffset as PatternTwoLength)
 
-export const rawPattern: Writable<string> = writable('')
+export const rawPattern: Writable<string> = (() => {
+  let value = ''
+  let subs = []
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const subscribe = (handler: any) => {
+    subs = [...subs, handler]
+    handler(value)
+    return () => subs = subs.filter(sub => sub !== handler)
+  }
+
+  // Custom `set` validation to only append 0 or 1 strings
+  const set = (newSequence: string) => {
+    if (!/^[01]+|$/.test(newSequence)) return
+
+    value = newSequence
+    subs.forEach(sub => sub(value))
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const update = (update: any) => set(update(value))
+
+  return { subscribe, set, update }
+})()
 
 /* Color controls */
 export const color: Writable<string> = writable('000000')
