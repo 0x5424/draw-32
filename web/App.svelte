@@ -11,7 +11,7 @@
   import FillDraw from './components/FillDraw.svelte'
   import Canvas from './components/Canvas.svelte'
   import Instructions from './components/Instructions.svelte'
-  import StrokeSize from './components/StrokeSize.svelte'
+  import StrokeMode from './components/StrokeMode.svelte'
   import Color from './components/Color.svelte'
 
   import { EXAMPLE as BITMAP } from './bitmaps'
@@ -56,7 +56,7 @@
 
     <hr />
     <div class="stroke-color">
-      <StrokeSize />
+      <StrokeMode />
       <Color />
     </div>
     <hr />
@@ -106,8 +106,8 @@
 
   .stroke-color {
     display: grid;
-    grid-template-columns: 1fr 1.5fr;
-    column-gap: 2.25em;
+    grid-template-columns: 0.9fr 1fr;
+    column-gap: 2em;
   }
 
   .fill-draw {

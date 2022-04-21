@@ -6,11 +6,11 @@
   import Form from './Form.svelte'
   /* IMPORTS (stores) */
   import {
-    commitFill, commitJump, commitStrokeSize, performDraw,
+    commitFill, commitJump, commitStrokeMode, performDraw,
     PerformDrawArguments
   } from '../util/instruction'
   import {
-    currentSequence, cursor, prevCursor, currentSequenceInitialized, strokeSize,
+    currentSequence, cursor, prevCursor, currentSequenceInitialized, strokeMode,
     visited, fillCells
   } from '../stores'
   /* DECLARATIONS (local state) */
@@ -19,7 +19,7 @@
   const onFormSubmit = () => {
     const drawArgs: PerformDrawArguments = {drawInstruction: commitFill()}
 
-    if (!$currentSequenceInitialized) $currentSequence = [commitStrokeSize($strokeSize)]
+    if (!$currentSequenceInitialized) $currentSequence = [commitStrokeMode($strokeMode)]
     if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor as [number, number])
 
     $currentSequence = [...$currentSequence, performDraw(drawArgs)]

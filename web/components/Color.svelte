@@ -3,14 +3,14 @@
   import Form from './Form.svelte'
   import Input from './Input.svelte'
   import {
-    commitColor, commitStrokeSize,
+    commitColor, commitStrokeMode,
     ColorIndex
   } from '../util/instruction'
   /* PROPS */
   /* IMPORTS (stores) */
-  import { color, currentSequence, currentSequenceInitialized, strokeSize } from '../stores'
+  import { color, currentSequence, currentSequenceInitialized, strokeMode } from '../stores'
   /* DECLARATIONS (local state) */
-  const formId = 'form-stroke-width'
+  const formId = 'form-color'
 
   /** @todo Make global */
   type Tuple<T, N extends number, R extends T[] = []> = N extends R['length'] ? R : Tuple<T, N, [...R, T]>
@@ -28,7 +28,7 @@
     const newColorIndex = COLOR_INDEX.indexOf($color)
     if (newColorIndex < 0 || newColorIndex >= 16) return
 
-    if (!$currentSequenceInitialized) $currentSequence = [commitStrokeSize($strokeSize)]
+    if (!$currentSequenceInitialized) $currentSequence = [commitStrokeMode($strokeMode)]
     $currentSequence = [...$currentSequence, commitColor(newColorIndex as ColorIndex)]
   }
   /* STORES (subscriptions) */
@@ -36,7 +36,7 @@
 </script>
 
 <Form id={formId} {onFormSubmit}>
-  <Input {formId} type="text" key="color" bind:value={$color} noPad />
+  <Input {formId} type="text" label="#" key="color" bind:value={$color} noPad />
 </Form>
 
 <style type="css"></style>

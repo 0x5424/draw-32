@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import {
-  commitInsertDraw, commitPatternDraw, commitRotate, commitColor, commitFill, commitJump, commitStrokeSize,
+  commitInsertDraw, commitPatternDraw, commitRotate, commitColor, commitFill, commitJump, commitStrokeMode,
   performDraw,
   PatternInstruction
 } from '../instruction'
@@ -89,10 +89,10 @@ describe('instruction.ts', () => {
     })
   })
 
-  describe('#commitStrokeSize()', () => {
+  describe('#commitStrokeMode()', () => {
     it('matches expected output', () => {
-      expect(commitStrokeSize(1)).to.eql('10')
-      expect(commitStrokeSize(3)).to.eql('11')
+      expect(commitStrokeMode(0)).to.eql('10')
+      expect(commitStrokeMode(1)).to.eql('11')
     })
   })
 

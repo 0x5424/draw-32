@@ -131,11 +131,7 @@ export const commitJump = (x: number, y: number) => {
  * - `1` = Constant 1; Hard-coded hack to persist most significant bit
  * - `*` = Stroke size; `0`` = length 1, `1` = length 3
  */
-export const commitStrokeSize = (width: 1 | 3) => {
-  const instrWidth = width === 1 ? '0' : '1'
-
-  return ['1', instrWidth].join('')
-}
+export const commitStrokeMode = (mode: 0 | 1) => `1${mode}`
 
 export interface PerformDrawArguments {
   drawInstruction: string;

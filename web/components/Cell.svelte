@@ -7,7 +7,7 @@
   import { fade } from 'svelte/transition'
   import { quadInOut as easing } from 'svelte/easing'
   /* IMPORTS (stores) */
-  import { cursor, cursorX, cursorY, visited, drawMode, patternCoordinates, insertCoordinates, fillCells } from '../stores'
+  import { cursor, cursorX, cursorY, visited, drawMode, patternCoordinates, insertCoordinates, toVisit } from '../stores'
   /* DECLARATIONS (local state) */
   const currentCell = [cellX, cellY].join(':')
   /* DECLARATIONS (local functions) */
@@ -33,7 +33,7 @@
   $: isPatternTwo = $drawMode === 'pattern' && $patternCoordinates[1].map(formatCell).includes(currentCell)
   $: isInsertCell = $drawMode === 'insert' && $insertCoordinates[0].map(formatCell).includes(currentCell)
   $: nextCursor = ($drawMode === 'insert' && $insertCoordinates[1]) || ($drawMode === 'pattern' && $patternCoordinates[2]) || []
-  $: isFillCell = $drawMode === 'fill' && $fillCells[currentCell]
+  $: isToVisitCell = $toVisit[currentCell]
   $: style = visitedColor && transformColor(visitedColor) && `background-color: ${transformColor(visitedColor)}; outline: solid 1px ${transformColor(visitedColor, true)}`
   /* LIFECYCLE */
 </script>
@@ -49,7 +49,7 @@
     class:cell-pattern-two={isPatternTwo}
     class:cell-insert={isInsertCell}
     class:cell-next-cursor={nextCursor?.join(':') === currentCell}
-    class:cell-fill={isFillCell}
+    class:cell-to-visit={isToVisitCell}
     on:click={onClick}
   >
     {bit}
@@ -74,6 +74,11 @@
     background: #bbb;
   }
 
+  .cell-on:not(.cell-visited):hover {
+    border: inset 1px slategrey;
+    background: #f4f4f4;
+  }
+
   .cell-visited { color: rgba(0,0,0, 0) }
 
   .cell-cursor {
@@ -85,7 +90,7 @@
   .cell-pattern-two { background: deepskyblue !important; }
   .cell-insert { background: lightsteelblue !important; }
 
-  .cell-fill {
+  .cell-to-visit {
     background: #bfb;
     outline: solid 1px #bfb;
   }

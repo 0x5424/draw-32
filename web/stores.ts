@@ -1,3 +1,4 @@
+/** @todo Clean-up, split stores into stores/*.ts and stores/index.ts */
 import { writable, derived, Writable, Readable } from 'svelte/store'
 
 import type { PatternOffset } from './util/instruction'
@@ -9,12 +10,62 @@ import {
   getSurroundingCoordinates
 } from './util/coordinates'
 
+/**
+ * Local utility function to evaluate which cells should be filled surrounding a pair of coords
+ */
+interface GetStrokeCellsParameters {
+  mode: 0 | 1;
+  x: number;
+  y: number;
+  dir: DirectionText;
+  visited: CanvasLike;
+  color: string;
+}
+const getStrokeCells = (args: GetStrokeCellsParameters): CoordinatesTuple[] => {
+  const {
+    mode,
+    x: inputX,
+    y: inputY,
+    dir,
+    visited,
+    color,
+  } = args
+  const baseCell = [inputX, inputY] as CoordinatesTuple
+
+  if (mode === 0) return [baseCell]
+
+  // Depending on rotation & already filled in squares, we will use only 2 surrounding coordinates
+  let inserted = 0
+  const orderedCoordinates = Object.entries(getSurroundingCoordinates(inputX, inputY)).sort((a, b) => {
+    const table = {
+      LEFT: ['UP', 'DOWN', 'RIGHT', 'LEFT'],
+      RIGHT: ['UP', 'DOWN', 'LEFT','RIGHT'],
+      UP: ['LEFT', 'RIGHT', 'DOWN', 'UP'],
+      DOWN: ['LEFT', 'RIGHT', 'UP', 'DOWN'],
+    }[dir]
+
+    return table.indexOf(a[0]) - table.indexOf(b[0])
+  })
+
+  const extraCells = orderedCoordinates.map(([, coords]) => {
+    if (inserted >= 2) return
+
+    const [x, y] = coords
+    if (visited[`${x}:${y}`] === color) return // Skip if we've already filled it with same color
+
+    inserted++
+    return [x, y]
+  }).filter(Boolean) as CoordinatesTuple[]
+
+  return [baseCell, ...extraCells]
+}
+
 interface Coordinates {
   x: number;
   y: number;
 }
 
-type CoordinatesTuple = [x: number, y: number] | []
+type CoordinatesTuple = [x: number, y: number]
 
 type DirectionArrow = '←' | '↓' | '→' | '↑'
 export type DirectionText = 'LEFT' | 'DOWN' | 'RIGHT' | 'UP'
@@ -28,7 +79,7 @@ export const cursorY: Writable<number> = writable(1)
 
 type CursorStore = [Readable<number>, Readable<number>]
 export const cursor = derived<CursorStore, CoordinatesTuple>([cursorX, cursorY], ([$cursorX, $cursorY]) => [$cursorX, $cursorY] as CoordinatesTuple)
-export const prevCursor: Writable<CoordinatesTuple> = writable([])
+export const prevCursor: Writable<CoordinatesTuple | []> = writable([])
 
 export const direction: Writable<DirectionArrow> = writable('→')
 export const directionText = derived<Readable<DirectionArrow>, DirectionText>(direction, $direction => {
@@ -103,15 +154,6 @@ export const rawPattern: Writable<string> = (() => {
   return { subscribe, set, update }
 })()
 
-/* Color controls */
-export const color: Writable<string> = writable('000000')
-
-/* Insert controls */
-export const insertLength: Writable<number> = writable(1)
-
-/* Stroke controls */
-export const strokeSize: Writable<1 | 3> = writable(1)
-
 /* Canvas info */
 type MatrixLike = MatrixCell[][]
 type CanvasLike = Record<string, string>
@@ -126,6 +168,34 @@ export const canvas = derived<[Readable<MatrixLike>, Readable<CanvasLike>], Canv
   })
 
   return out
+})
+
+/* Color controls */
+export const color: Writable<string> = writable('000000')
+
+/* Insert controls */
+export const insertLength: Writable<number> = writable(1)
+
+/* Stroke controls */
+export const strokeMode: Writable<0 | 1> = writable(0)
+type StrokeCellsStore = [
+  Readable<0 | 1>,
+  Readable<CoordinatesTuple>,
+  Readable<DirectionText>,
+  Readable<CanvasLike>,
+  Readable<string>,
+]
+export const strokeCells = derived<StrokeCellsStore, CoordinatesTuple[]>([strokeMode, cursor, directionText, visited, color], ([$strokeMode, $cursor, $directionText, $visited, $color]) => {
+  const [x, y] = $cursor
+  const args = {
+    x, y,
+    mode: $strokeMode,
+    dir: $directionText,
+    visited: $visited,
+    color: $color,
+  }
+
+  return Object.values(getStrokeCells(args))
 })
 
 /* Fill info */
@@ -180,7 +250,7 @@ type PatternCoordinatesStore = [
   Readable<PatternTwoLength>, // P2
   Readable<string> // Raw pattern
 ]
-type PatternCoordinatesResult = [CoordinatesTuple[], CoordinatesTuple[], CoordinatesTuple]
+type PatternCoordinatesResult = [CoordinatesTuple[], CoordinatesTuple[], CoordinatesTuple | []]
 export const patternCoordinates = derived<PatternCoordinatesStore, PatternCoordinatesResult>(
   [cursor, directionText, rotationText, directionIncrements, patternOneLength, patternTwoLength, rawPattern],
   ([$cursor, $directionText, $rotationText, $directionIncrements, $patternOneLength, $patternTwoLength, $rawPattern]) => {
@@ -228,7 +298,7 @@ type InsertCoordinatesStore = [
   Readable<RotationText>,
   Readable<number> // Insertion length
 ]
-type InsertCoordinatesResult = [CoordinatesTuple[], CoordinatesTuple]
+type InsertCoordinatesResult = [CoordinatesTuple[], CoordinatesTuple | []]
 export const insertCoordinates = derived<InsertCoordinatesStore, InsertCoordinatesResult>(
   [cursor, directionText, rotationText, insertLength],
   ([$cursor, $directionText, $rotationText, $insertLength]) => {
@@ -285,61 +355,39 @@ export const currentSequence: Writable<string[]> = (() => {
 })()
 
 type ToVisitStore = [
-  Readable<1 | 3>,
+  Readable<0 | 1>,
   Readable<string>,
   Readable<DirectionText>,
   Readable<DrawMode>,
   Readable<PatternCoordinatesResult>,
   Readable<InsertCoordinatesResult>,
+  Readable<CanvasLike>,
   Readable<CanvasLike>
 ]
 export const toVisit = derived<ToVisitStore, Record<string, string>>(
-  [strokeSize, color, directionText, drawMode, patternCoordinates, insertCoordinates, visited],
-  ([$strokeSize, $color, $directionText, $drawMode, $patternCoordinates, $insertCoordinates, $visited]) => {
-    const getStrokeCells = (inputX: number, inputY: number): CoordinatesTuple[] => {
-      const baseCell = [inputX, inputY] as CoordinatesTuple
-
-      if ($strokeSize === 1) return [baseCell]
-
-      // Depending on rotation & already filled in squares, we will use only 2 surrounding coordinates
-      let inserted = 0
-      const orderedCoordinates = Object.entries(getSurroundingCoordinates(inputX, inputY)).sort((a, b) => {
-        const table = {
-          LEFT: ['UP', 'DOWN', 'RIGHT', 'LEFT'],
-          RIGHT: ['UP', 'DOWN', 'LEFT','RIGHT'],
-          UP: ['LEFT', 'RIGHT', 'DOWN', 'UP'],
-          DOWN: ['LEFT', 'RIGHT', 'UP', 'DOWN'],
-        }[$directionText]
-
-        return table.indexOf(a[0]) - table.indexOf(b[0])
-      })
-
-      const extraCells = orderedCoordinates.map(([, coords]) => {
-        if (inserted >= 2) return
-
-        const [x, y] = coords
-        if ($visited[`${x}:${y}`] === $color) return // Skip if we've already filled it with same color
-
-        inserted++
-        return [x, y]
-      }).filter(Boolean) as CoordinatesTuple[]
-
-      return [baseCell, ...extraCells]
-    }
-
+  [strokeMode, color, directionText, drawMode, patternCoordinates, insertCoordinates, visited, fillCells],
+  ([$strokeMode, $color, $directionText, $drawMode, $patternCoordinates, $insertCoordinates, $visited, $fillCells]) => {
     const out = {}
+    const baseArgs = {
+      mode: $strokeMode,
+      dir: $directionText,
+      visited: $visited,
+      color: $color
+    }
 
     switch ($drawMode) {
     case 'insert':
       $insertCoordinates[0].map(([insertX, insertY]) => {
-        getStrokeCells(insertX, insertY).forEach(([x, y]) => out[`${x}:${y}`] = $color)
+        getStrokeCells({ ...baseArgs, x: insertX, y: insertY }).forEach(([x, y]) => out[`${x}:${y}`] = $color)
       })
       break
     case 'pattern':
       [...$patternCoordinates[0], ...$patternCoordinates[1]].forEach(([patternX, patternY]) => {
-        getStrokeCells(patternX, patternY).forEach(([x, y]) => out[`${x}:${y}`] = $color)
+        getStrokeCells({ ...baseArgs, x: patternX, y: patternY }).forEach(([x, y]) => out[`${x}:${y}`] = $color)
       })
       break
+    case 'fill':
+      return $fillCells
     default:
       break
     }

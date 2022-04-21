@@ -48,6 +48,7 @@
           <input
             bind:value
             on:keydown={onKeydown}
+            class:one-char={oneChar}
             type="number"
             id={key}
             name={key}
@@ -62,8 +63,8 @@
             bind:value
             on:keydown={onKeydown}
             class:one-char={oneChar}
-            class:draw-input={/^(pattern|insert|fill)$/.test(`${value}`)}
-            class:color-input={key === 'color'}
+            class:draw-input={formId === 'form-draw-mode'}
+            class:color-input={formId === 'form-color'}
             type="text"
             id={key}
             name={key}
@@ -115,7 +116,11 @@
 
   /* TODO: Something more elegant... Styling inputs is a nightmare */
   .draw-input { width: 65px; }
-  .color-input { width: 80px; }
+  .color-input {
+    width: 55px;
+    padding-left: 0;
+    padding-right: 0;
+  }
 
   /* Note: styling only applies when no `slot` used */
   textarea, input {
@@ -124,7 +129,7 @@
     outline: none;
     color: slategray;
   }
-  input[type="number"] {
+  input:not(.one-char)[type="number"] {
     min-width: 2.3rem; /* Fits 3 digits */
     width: 2.3rem; /* TODO: Dynamic width; Maybe only possible with JS */
   }

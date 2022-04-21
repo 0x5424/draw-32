@@ -7,13 +7,13 @@
   import Input from './Input.svelte'
 
   import {
-    commitRotate, commitPatternDraw, commitJump, commitStrokeSize, performDraw,
+    commitRotate, commitPatternDraw, commitJump, commitStrokeMode, performDraw,
     PerformDrawArguments, PatternOffset
   } from '../util/instruction'
   /* IMPORTS (stores) */
   import {
     cw, patternOneLength, patternTwoOffset, patternTwoLength, rawPattern, direction, directionText, prevDirection,
-    currentSequence, cursor, cursorX, cursorY, prevCursor, visited, currentSequenceInitialized, strokeSize,
+    currentSequence, cursor, cursorX, cursorY, prevCursor, visited, currentSequenceInitialized, strokeMode,
     patternCoordinates, toVisit
   } from '../stores'
   /* DECLARATIONS (local state) */
@@ -44,7 +44,7 @@
     }
 
 
-    if (!$currentSequenceInitialized) $currentSequence = [commitStrokeSize($strokeSize)]
+    if (!$currentSequenceInitialized) $currentSequence = [commitStrokeMode($strokeMode)]
 
     if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText)
     if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor as [number, number])
