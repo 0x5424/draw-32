@@ -222,9 +222,9 @@ interface PerformLoadArguments {
  *
  * @todo Persist `allSequences` store as InstructionObject[][], thus removing need to re-convert back to raw bitstream
  */
-export const performReset = (stores: PerformResetArguments, newState?: string[]): void => {
+export const performReset = (stores: PerformResetArguments, newState: string[] | false = false): void => {
   // 1. Parse instructions first, as to not reset app state before validating
-  let allInstructions: InstructionObject[][] = []
+  const allInstructions: InstructionObject[][] = []
   if (newState) newState.forEach(str => allInstructions.push(parseInstructionStream(str)))
 
   stores.visitedStore({})
@@ -237,25 +237,29 @@ export const performReset = (stores: PerformResetArguments, newState?: string[])
   stores.currentSequenceStore([])
 
   if (allInstructions.length > 0) {
-    let { currentSequenceStore, pastSequencesStore } = stores
+    const { currentSequenceStore, pastSequencesStore } = stores
 
-    performLoad(allInstructions, { currentSequenceStore, pastSequencesStore })
+    performLoad({ currentSequenceStore, pastSequencesStore }, allInstructions, [], [])
   }
 }
 
-export const performLoad = (newInstructions: InstructionObject[][], stores: PerformLoadArguments): void => {
+/**
+ * The easiest way to ensure instruction parity is to sequentially re-parse everything from 0
+ */
+export const performLoad = (stores: PerformLoadArguments, newInstructions: InstructionObject[][], currentState: string[], pastState: string[][]): void => {
   // Init stores
-  let {currentSequenceStore: current, pastSequencesStore: past} = stores
-  let newPast = []
+  const {currentSequenceStore: current, pastSequencesStore: past} = stores
 
-  newInstructions.forEach((sequence: InstructionObject[]) => {
-    const newCurrent = []
+  // We must prepare new values for current/past _before_ calling the setter function, as we have no way to expand the Readable value from the store
+  newInstructions.forEach((sequence: InstructionObject[], i) => {
     sequence.forEach(instrObj => {
-      newCurrent.push(formatInstruction(instrObj))
+      currentState.push(formatInstruction(instrObj))
     })
-    current(newCurrent)
+    /** @note Thankfully, underlying store will still properly throw overflow error if newCurrent.length > 255 */
+    current(currentState)
 
-    newPast = [...newPast, newCurrent]
+    // Only set new pastState if we're _NOT_ on the final iteration of our instruction set
+    if (newInstructions.length - 1 !== i) pastState = [...pastState, currentState]
   })
-  past(newPast)
+  past(pastState)
 }

@@ -139,7 +139,7 @@ export const parseInstructionStream = (instructions: string): InstructionObject[
   const out = []
 
   // Iterate while we have a value at the program counter index
-  for (; !!instructions[pc];) {
+  for (; instructions[pc];) {
     const [instr, bitsRead] = parseInstruction(instructions, pc)
     pc += bitsRead
 

@@ -11,10 +11,12 @@
     visited, cursorX, cursorY, color, direction, prevCursor
   } from '../stores'
   /* DECLARATIONS (local state) */
+  let inEditMode = false
+  let toLoad = ''
 
   /* DECLARATIONS (local functions) */
   const formatSequence = (binString: string) => {
-    if (binString === '') return ''
+    if (!binString || binString === '') return ''
 
     const hex = BigInt(`0b${binString}`).toString(16)
 
@@ -26,8 +28,7 @@
     $currentSequence = []
   }
   // const undoSequence = () => {}
-
-  const resetSequences = () => {
+  const handleLoadOrReset = (newState: string[] | false = false): void => {
     const args = {
       visitedStore: visited.set,
       cursorXStore: cursorX.set,
@@ -39,13 +40,27 @@
       currentSequenceStore: currentSequence.set,
     }
 
-    performReset(args)
+    performReset(args, newState)
+    inEditMode = false
   }
+
+  const resetSequences = () => handleLoadOrReset()
+  const loadSequences = () => handleLoadOrReset(formattedToLoad)
+
+  const toggleLoad = () => inEditMode = !inEditMode
 
   const logState = () => console.log('INSTRUCTIONS:', $allSequences)
 
   /* STORES (subscriptions) */
   $: value = `[\n${$allSequences.map(formatSequence).join(',\n')}\n]`
+  allSequences.subscribe(newArray => {
+    /**
+     * @note We update the local var, `toLoad` as otherwise we have no means to bind a value to the textarea
+     * @note This is also the reason for a conditional textarea component when in edit mode
+     */
+    toLoad = newArray.map(formatSequence).join('\n')
+  })
+  $: formattedToLoad = toLoad.split(/[\s,]+/).filter(v => v !== '')
   /* LIFECYCLE */
 
   // Hack, as eslint does not recognize `value` being used in component
@@ -53,19 +68,33 @@
 </script>
 
 <div>
-  <textarea
-    {value}
-    readonly
-    rows={$allSequences.length + 2}
-    cols=24
-  />
+  {#if inEditMode}
+    <textarea
+      bind:value={toLoad}
+      rows={formattedToLoad.length}
+      cols=24
+    />
+  {:else}
+    <textarea
+      {value}
+      readonly
+      rows={$allSequences.length + 2}
+      cols=24
+    />
+  {/if}
 </div>
 
 <div>
-  <button on:click={saveSequence}>Save</button>
-  <!-- <button on:click={undoSequence}>Undo</button> -->
-  <button on:click={resetSequences}>Reset</button>
-  <button on:click={logState}>Log</button>
+  {#if inEditMode}
+    <button on:click={loadSequences}>Confirm</button>
+    <button on:click={toggleLoad}>Cancel</button>
+  {:else}
+    <button on:click={saveSequence}>Save</button>
+    <!-- <button on:click={undoSequence}>Undo</button> -->
+    <button on:click={resetSequences}>Reset</button>
+    <button on:click={toggleLoad}>Load</button>
+    <button on:click={logState}>Log</button>
+  {/if}
 </div>
 
 <style>
