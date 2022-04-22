@@ -6,12 +6,12 @@ import type { DirectionText } from '../stores'
  */
 
 /**
- * Raw format: (0, *, 1, N)
+ * Raw format: (0, *, 1, N) - Minimum 5; VL = 00 (1)
  *
  * - `0` = Constant 0; "Draw subroutine"
  * - `*` = 1 bit; Rotation, cw/ccw
  * - `1` = Constant 1; "Insert mode"
- * - `N` = Variable; RLE encoded length to insert
+ * - `VL` = Variable; RLE encoded length to insert (# bits always divisible by 2)
  *
  * @example The raw instruction `0111011` means:
  *   "Draw clockwise, using insert mode, 6 units"
@@ -23,9 +23,55 @@ import type { DirectionText } from '../stores'
  * ```
  * Where `s` is the cursor start position, `e` is the end position--now shifted "clockwise", relative to the N units inserted.
  *
+ * @example Using 2 sequential inserts where p1,p2=(1|2) is 1 less bit than pattern mode:
+ * ```
+ * ins = '0*1**' // 5
+ * `${ins}${ins}`.length === 10
+ *
+ * pattern = '0*0000001**'.length === 11
+ * ```
+ *
+ * @example Comparing 3 sequential inserts where p1,p2=(1|2) to pattern mode:
+ * ```
+ * ins = '0*1**' // 5
+ * `${ins}${ins}${ins}`.length === 15
+ *
+ * pattern = `0*000001000***`.length === 14
+ * ```
+ *
+ * @example Comparing 2 sequential inserts where p1,p2=(4|[5-6]) to pattern mode:
+ * ```
+ * ins = '0*1****' // 7
+ * `${ins}${ins}`.length === 14
+ *
+ * pattern = `0*011**01**`.length === 11
+ * ```
+ *
+ * @example Comparing 2 sequential inserts where p1,p2=(1|[2-5]) to pattern mode:
+ * ```
+ * i1_2 = '0*1**' // 5
+ * i3_4_5 = '0*1****' // 7
+ * // insert*2: length is === 10 | 12
+ *
+ * pattern = `0*000**01**`.length === 11
+ * ```
+ *
+ * * @example Comparing 3 sequential inserts where p1,p2=(1|[2-5]) to pattern mode:
+ * ```
+ * i1_2 = '0*1**' // 5
+ * i3_4_5 = '0*1****' // 7
+ * // insert*3: length is === 15 | 17 | 19
+ *
+ * pattern = `0*000**1000***`.length === 14
+ * ```
+ *
+ * @note Due to above, pattern mode is generally suggested for:
+ * - Sequences of 3 or greater
+ * - Sequences of 2, where any of the members are larger than length 2
+ *
  * @see {@link ./encode.ts#enodeRle}
  */
-interface InsertInstruction {
+export interface InsertInstruction {
   cw: boolean;
   length: number;
 }
@@ -33,13 +79,13 @@ interface InsertInstruction {
 export type PatternOffset = 1 | 2 | 3 | 4;
 
 /**
- * Raw format: (0, *, 0, ****, N, N)
+ * Raw format: (0, *, 0, ****, VL, N) - Minimum 10; VL = 00 (1) N = *
  *
  * - `0` = Constant 0; "Draw subroutine"
  * - `*` = 1 bit; Rotation, cw/ccw
  * - `0` = Constant 0; "Pattern mode"
  * - `****` = 4 bits; Upper are length/size of P1, Lower are length/size of P2--only from 1-4 & 2-5 respectively
- * - `N` = Variable; RLE encoded length of pattern to insert
+ * - `VL` = Variable; RLE encoded length of pattern to insert (# bits always divisible by 2)
  * - `N` = Variable; Bitstream instructions read sequentially, wherein 0 inserts P1, 1 inserts P2
  */
 export interface PatternInstruction {
@@ -118,12 +164,14 @@ export const commitFill = () => '1110'
  * - `N` = Variable; RLE encoded X coordinate
  * - `N` = Variable; RLE encoded Y coordinate
  */
-export const commitJump = (x: number, y: number) => {
+export type CoordinatesTuple = [x: number, y: number]
+export const commitJump: (...args: CoordinatesTuple) => string = (x, y) => {
   const xy = [x, y].map(encodeRle).join('')
 
   return ['1', '111', xy].join('')
 }
 
+export type StrokeMode = 0 | 1
 /**
  * Raw format: ^(1, *)
  *
@@ -131,7 +179,7 @@ export const commitJump = (x: number, y: number) => {
  * - `1` = Constant 1; Hard-coded hack to persist most significant bit
  * - `*` = Stroke size; `0`` = length 1, `1` = length 3
  */
-export const commitStrokeMode = (mode: 0 | 1) => `1${mode}`
+export const commitStrokeMode = (mode: StrokeMode) => `1${mode}`
 
 export interface PerformDrawArguments {
   drawInstruction: string;

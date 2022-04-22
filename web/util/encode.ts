@@ -19,15 +19,53 @@ export const encodeRle = (int: number) => {
   ].join('')
 }
 
-export const decodeRle = (stream: string) => {
+/**
+ * @todo Add nice Type narrowing based on a descriminator arg/param (returnBitsRead or similar)
+ *
+ * @example Non-working overload
+ * ```
+ * type FnDecodeRle = {
+ *   (stream: string, pc?: number, returnBitsRead?: true): [number, number];
+ *   (stream: string, pc?: number, returnBitsRead?: false): number
+ * }
+ * ```
+ *
+ * @example Non-working narrowing with `is` predicate
+ * ```
+ * isTuple = (outp): outp is [number, number] => Array.isArray(outp) && outp.length === 2
+ *
+ * decodeRle = (...args): [number, number] | number => {
+ *   // ...
+ *   return isTuple(x) ? x : x[0]
+ * }
+ * ```
+ *
+ * @example Non-working narrowing with conditional param check
+ * ```
+ * decodeRle = (...args, returnTuple = false): typeof returnTuple extends true ? [number, number] : number => {
+ *   // ...
+ * }
+ * ```
+ */
+export const decodeRleAsTuple = (stream: string, pc = 0): [number, number] => {
   let mask = '0'
   let bitsRead = 0
   // Iterate until we hit a non-1
-  for (; stream[bitsRead] === '1'; ++bitsRead) {
+  for (; stream[pc + bitsRead] === '1'; ++bitsRead) {
     mask = '1' + mask
   }
 
-  const rest = stream.slice(bitsRead + 1)
+  // We need to slice starting from the immediate bit after the mask
+  const startIndex = pc + bitsRead + 1
+  const endIndex = startIndex + mask.length
 
-  return parseInt(rest, 2) + (parseInt(mask, 2) + 0b1)
+  const rest = stream.slice(startIndex, endIndex)
+  const parsedNumber = parseInt(rest, 2) + (parseInt(mask, 2) + 0b1)
+
+  // Final guard clause, for redundancy
+  if (rest.length !== mask.length) throw new Error(`Fatal decode error; Check bitstream & mask [${rest}, ${mask}]`)
+
+  return [parsedNumber, rest.length + mask.length]
 }
+
+export const decodeRle = (stream: string, pc = 0): number => decodeRleAsTuple(stream, pc)[0]

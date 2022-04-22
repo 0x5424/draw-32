@@ -20,7 +20,7 @@
     const drawArgs: PerformDrawArguments = {drawInstruction: commitFill()}
 
     if (!$currentSequenceInitialized) $currentSequence = [commitStrokeMode($strokeMode)]
-    if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor as [number, number])
+    if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor)
 
     $currentSequence = [...$currentSequence, performDraw(drawArgs)]
 

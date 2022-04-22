@@ -1,7 +1,7 @@
 /** @todo Clean-up, split stores into stores/*.ts and stores/index.ts */
 import { writable, derived, Writable, Readable } from 'svelte/store'
 
-import type { PatternOffset } from './util/instruction'
+import type { PatternOffset, StrokeMode, CoordinatesTuple } from './util/instruction'
 import type { MatrixCell } from './util/matrix'
 
 import {
@@ -14,7 +14,7 @@ import {
  * Local utility function to evaluate which cells should be filled surrounding a pair of coords
  */
 interface GetStrokeCellsParameters {
-  mode: 0 | 1;
+  mode: StrokeMode;
   x: number;
   y: number;
   dir: DirectionText;
@@ -64,8 +64,6 @@ interface Coordinates {
   x: number;
   y: number;
 }
-
-type CoordinatesTuple = [x: number, y: number]
 
 type DirectionArrow = '←' | '↓' | '→' | '↑'
 export type DirectionText = 'LEFT' | 'DOWN' | 'RIGHT' | 'UP'
@@ -177,9 +175,9 @@ export const color: Writable<string> = writable('000000')
 export const insertLength: Writable<number> = writable(1)
 
 /* Stroke controls */
-export const strokeMode: Writable<0 | 1> = writable(0)
+export const strokeMode: Writable<StrokeMode> = writable(0)
 type StrokeCellsStore = [
-  Readable<0 | 1>,
+  Readable<StrokeMode>,
   Readable<CoordinatesTuple>,
   Readable<DirectionText>,
   Readable<CanvasLike>,
@@ -355,7 +353,7 @@ export const currentSequence: Writable<string[]> = (() => {
 })()
 
 type ToVisitStore = [
-  Readable<0 | 1>,
+  Readable<StrokeMode>,
   Readable<string>,
   Readable<DirectionText>,
   Readable<DrawMode>,

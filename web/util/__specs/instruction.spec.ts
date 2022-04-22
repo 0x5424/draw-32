@@ -74,7 +74,7 @@ describe('instruction.ts', () => {
     })
   })
 
-  describe('#commitColor()', () => {
+  describe('#commitFill()', () => {
     it('matches expected output', () => {
       expect(commitFill()).to.eql('1110')
     })

@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { encodeRle, decodeRle } from '../encode'
+import { encodeRle, decodeRle, decodeRleAsTuple } from '../encode'
 
 describe('encode.ts', () => {
   describe('#encodeRle()', () => {
@@ -29,6 +29,16 @@ describe('encode.ts', () => {
       expect(decodeRle('110001')).to.eql(8)
       expect(decodeRle('11111101000001')).to.eql(192)
       expect(decodeRle('111111111110000001101010')).to.eql(4201)
+      expect(decodeRle('**111111111110000001101010', 2)).to.eql(4201)
+      expect(decodeRle('**111111111110000001101010**', 2)).to.eql(4201)
+    })
+  })
+
+  describe('#decodeRleAsTuple()', () => {
+    it('succeeds with valid arguments', () => {
+      expect(decodeRleAsTuple('111111111110000001101010', 0)).to.eql([4201, 24])
+      expect(decodeRleAsTuple('**111111111110000001101010', 2)).to.eql([4201, 24])
+      expect(decodeRleAsTuple('**111111111110000001101010**', 2)).to.eql([4201, 24])
     })
   })
 

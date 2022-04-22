@@ -65,7 +65,7 @@
   }
 
   td:hover {
-    outline: inset 1px slategrey;
+    outline: inset 1px #3d3;
     cursor: pointer;
   }
 
@@ -80,6 +80,10 @@
   }
 
   .cell-visited { color: rgba(0,0,0, 0) }
+  .cell-visited:hover {
+    color: unset;
+    border: inset 1px #bfb;
+  }
 
   .cell-cursor {
     border: inset 1px #3d3;
@@ -93,11 +97,6 @@
   .cell-to-visit {
     background: #bfb;
     outline: solid 1px #bfb;
-  }
-
-  .cell-fill.cell-on {
-    border: outset 1px #4f4;
-    outline: solid 1px rgba(0,0,0, 0);
   }
 
   .cell-next-cursor {
