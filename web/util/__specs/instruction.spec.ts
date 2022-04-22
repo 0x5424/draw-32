@@ -96,6 +96,8 @@ describe('instruction.ts', () => {
     })
   })
 
+  /* Perform helpers (webapp-specific functions) */
+
   describe('#performDraw()', () => {
     it('matches expected output', () => {
       const oneArg = {drawInstruction: 'draw'}

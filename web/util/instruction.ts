@@ -1,5 +1,6 @@
 import { encodeRle } from './encode'
-import type { DirectionText } from '../stores'
+import { InstructionObject, parseInstructionStream, formatInstruction } from './parse'
+import type { DirectionText, DirectionArrow, CanvasLike } from '../stores'
 
 /**
  * @todo Consider TS template literal for return types here
@@ -186,6 +187,10 @@ export interface PerformDrawArguments {
   rotateInstruction?: string;
   jumpInstruction?: string;
 }
+
+/**
+ * `perform` helpers to be used for DRYing webapp-specific actions -- not actual instructions
+ */
 export const performDraw = (instructions: PerformDrawArguments) => {
   const { drawInstruction, rotateInstruction, jumpInstruction } = instructions
 
@@ -195,4 +200,58 @@ export const performDraw = (instructions: PerformDrawArguments) => {
   if (jumpInstruction) output.unshift(jumpInstruction)
 
   return output.join('')
+}
+
+type PerformResetArguments = {
+  visitedStore: CanvasLike;
+  cursorXStore: number;
+  cursorYStore: number;
+  prevCursorStore: [number, number] | []
+  colorStore: string;
+  directionStore: DirectionArrow;
+} & Partial<PerformLoadArguments>
+
+interface PerformLoadArguments {
+  currentSequenceStore: string[];
+  pastSequencesStore: string[][];
+}
+/**
+ * Reset the webapp state, and provide an optional new set of instructions to reload in it's place
+ *
+ * @todo Combine this with hard-coded constants
+ *
+ * @todo Persist `allSequences` store as InstructionObject[][], thus removing need to re-convert back to raw bitstream
+ */
+export const performReset = (stores: PerformResetArguments, newState?: string[]): void => {
+  // 1. Parse instructions first, as to not reset app state before validating
+  let allInstructions: InstructionObject[][] = []
+  if (newState) newState.forEach(str => allInstructions.push(parseInstructionStream(str)))
+
+  stores.visitedStore = {}
+  stores.cursorXStore = 1
+  stores.cursorYStore = 1
+  stores.colorStore = '000000'
+  stores.directionStore = '→'
+  stores.prevCursorStore = []
+
+  if (allInstructions.length > 0) {
+    const {currentSequenceStore: current, pastSequencesStore: past} = stores
+
+    if (!current || !past) throw new Error('Need sequence stores to perform instruction load')
+    performLoad(allInstructions, { currentSequenceStore: current, pastSequencesStore: past })
+  }
+}
+
+export const performLoad = (newInstructions: InstructionObject[][], stores: PerformLoadArguments): void => {
+  // Init stores
+  let {currentSequenceStore: current, pastSequencesStore: past} = stores
+  past = []
+
+  newInstructions.forEach((sequence: InstructionObject[]) => {
+    current = []
+    sequence.forEach(instrObj => {
+      current = [...current, formatInstruction(instrObj)]
+    })
+    past = [...past, current]
+  })
 }

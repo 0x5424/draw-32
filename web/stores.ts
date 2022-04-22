@@ -65,7 +65,7 @@ interface Coordinates {
   y: number;
 }
 
-type DirectionArrow = '←' | '↓' | '→' | '↑'
+export type DirectionArrow = '←' | '↓' | '→' | '↑'
 export type DirectionText = 'LEFT' | 'DOWN' | 'RIGHT' | 'UP'
 type RotationArrow ='↙' | '↘' | '↗' | '↖'
 export type RotationText ='UP_LEFT' | 'UP_RIGHT' | 'DOWN_LEFT' | 'DOWN_RIGHT'
@@ -154,7 +154,7 @@ export const rawPattern: Writable<string> = (() => {
 
 /* Canvas info */
 type MatrixLike = MatrixCell[][]
-type CanvasLike = Record<string, string>
+export type CanvasLike = Record<string, string>
 export const visited: Writable<CanvasLike> = writable({})
 export const canvas = derived<[Readable<MatrixLike>, Readable<CanvasLike>], CanvasLike>([matrix, visited], ([$matrix, $visited]) => {
   // Output a new canvas with all visited cells set

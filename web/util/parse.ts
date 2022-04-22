@@ -22,7 +22,7 @@ type InstructionName =
 type InstructionArg = PatternInstruction | InsertInstruction | DirectionText | CoordinatesTuple | StrokeMode | ColorIndex
 
 /** @todo R&D some magic with `infer` to make `arg` safer */
-interface InstructionObject {
+export interface InstructionObject {
   name: InstructionName,
   arg: InstructionArg | null
 }
@@ -147,4 +147,17 @@ export const parseInstructionStream = (instructions: string): InstructionObject[
   }
 
   return out
+}
+
+/** @todo Remove when `allSequences` store is InstructionObject[][] */
+export const formatInstruction = (obj: InstructionObject): string => {
+  const { name } = obj
+
+  if (name === 'commitInsertDraw') return 'fixme'
+  if (name === 'commitPatternDraw') return 'fixme'
+  if (name === 'commitRotate') return 'fixme'
+  if (name === 'commitColor') return 'fixme'
+  if (name === 'commitFill') return 'fixme'
+  if (name === 'commitJump') return 'fixme'
+  if (name === 'commitStrokeMode') return 'fixme'
 }
