@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { discernInstructionName, parseInstruction } from '../parse'
+import { discernInstructionName, parseInstruction, parseInstructionStream } from '../parse'
 
 describe('parse.ts', () => {
   describe('#discernInstructionName()', () => {
@@ -37,24 +37,24 @@ describe('parse.ts', () => {
     // Stroke: [0], Jump: [2, 7], Insert: [ccw, 14], Rotate: [down], Pattern: [cw, 1, 1, 4, 010101]
     const sequence1 = ['11', jump, insert, down, pattern].join('')
 
+    // Expected args
+    const expectedStroke0 = [{name: 'commitStrokeMode', arg: 0}, 2]
+    const expectedStroke1 = [{name: 'commitStrokeMode', arg: 1}, 2]
+    const expectedJump = [{name: 'commitJump', arg: [2, 7]}, 12]
+    const expectedPatternDraw = [
+      {name: 'commitPatternDraw', arg: {cw: true, p1Length: 1, p2Offset: 1, pattern: '010101'}},
+      17
+    ]
+    const expectedInsertDraw = [{name: 'commitInsertDraw', arg: {cw: false, length: 14}}, 9]
+    const expectedColor = [{name: 'commitColor', arg: 15}, 7]
+    const expectedDown = [{name: 'commitRotate', arg: 'DOWN'}, 4]
+    const expectedFill = [{name: 'commitFill', arg: null}, 4]
+
     describe('#parseInstruction()', () => {
       const prepare0 = (n: number): [string, number] => [sequence0, n]
       const prepare1 = (n: number): [string, number] => [sequence1, n]
 
       it('succeeds with valid arguments', () => {
-        // Expected args
-        const expectedStroke0 = [{name: 'commitStrokeMode', arg: 0}, 2]
-        const expectedStroke1 = [{name: 'commitStrokeMode', arg: 1}, 2]
-        const expectedJump = [{name: 'commitJump', arg: [2, 7]}, 2 + 12]
-        const expectedPatternDraw = [
-          {name: 'commitPatternDraw', arg: {cw: true, p1Length: 1, p2Offset: 1, pattern: '010101'}},
-          14 + 17
-        ]
-        const expectedInsertDraw = [{name: 'commitInsertDraw', arg: {cw: false, length: 14}}, 14 + 9]
-        const expectedColor = [{name: 'commitColor', arg: 15}, 31 + 7]
-        const expectedDown = [{name: 'commitRotate', arg: 'DOWN'}, 23 + 4]
-        const expectedFill = [{name: 'commitFill', arg: null}, 38 + 4]
-
         expect(parseInstruction(...prepare0(0))).to.eql(expectedStroke0)
         expect(parseInstruction(...prepare1(0))).to.eql(expectedStroke1)
 
@@ -69,6 +69,25 @@ describe('parse.ts', () => {
 
         expect(parseInstruction(...prepare0(38))).to.eql(expectedFill)
       })
+    })
+
+    describe('#parseInstructionStream()', () => {
+      const expected0 = [
+        expectedStroke0, expectedJump, expectedPatternDraw, expectedColor, expectedFill
+      ].map(([i,]) => i) // Only keep the instruction, bitsRead not needed
+
+      const expected1 = [
+        expectedStroke1, expectedJump, expectedInsertDraw, expectedDown, expectedPatternDraw
+      ].map(([i,]) => i)
+
+      // Same as sequence(0|1) but hex-encoded
+      const hex0 = '0x2f70016aefe'
+      const hex1 = 'fdc1ef402d5'
+
+      expect(parseInstructionStream(sequence0)).to.eql(expected0)
+      expect(parseInstructionStream(sequence1)).to.eql(expected1)
+      expect(parseInstructionStream(hex0)).to.eql(expected0)
+      expect(parseInstructionStream(hex1)).to.eql(expected1)
     })
   })
 })

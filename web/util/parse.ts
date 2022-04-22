@@ -114,7 +114,37 @@ export const parseInstruction: (...a: ParseInstructionArgs) => [InstructionObjec
   const [name, instructionBitsRead] = discernInstructionName(stream, pc)
   pc += instructionBitsRead
   const [arg, argBitsRead] = discernArg(name, stream, pc)
-  pc += argBitsRead
 
-  return [{name, arg}, pc]
+  return [{name, arg}, instructionBitsRead + argBitsRead]
+}
+
+/**
+ * Normalize a hex string (with or without a prefixed `0x`) to a string comprised of binary digits
+ */
+const hexStringToBinString = (str: string) => {
+  if (!str.startsWith('0x')) str = `0x${str}`
+
+  return BigInt(str).toString(2)
+}
+
+/** Take raw instruction arg (in bin or hex format) and convert to InstructionObject ary */
+export const parseInstructionStream = (instructions: string): InstructionObject[] => {
+  if (!/^[0-1]{2,255}$/.test(instructions)) {
+    if (!/^(0x)?([0-9]|[a-f]){2,64}$/.test(instructions)) throw new Error(`Invalid instructions: ${instructions}`)
+
+    instructions = hexStringToBinString(instructions)
+  }
+
+  let pc = 0
+  const out = []
+
+  // Iterate while we have a value at the program counter index
+  for (; !!instructions[pc];) {
+    const [instr, bitsRead] = parseInstruction(instructions, pc)
+    pc += bitsRead
+
+    out.push(instr)
+  }
+
+  return out
 }
