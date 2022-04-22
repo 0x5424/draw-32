@@ -10,6 +10,8 @@ import {
   getSurroundingCoordinates
 } from './util/coordinates'
 
+import { InstructionObject, parseInstructionStream } from './util/parse'
+
 /**
  * Local utility function to evaluate which cells should be filled surrounding a pair of coords
  */
@@ -325,7 +327,7 @@ export const insertCoordinates = derived<InsertCoordinatesStore, InsertCoordinat
   })
 
 /* Instructions */
-export const currentSequence: Writable<string[]> = (() => {
+export const currentInstructionBuffer: Writable<string[]> = (() => {
   let value = []
   let subs = []
 
@@ -393,14 +395,16 @@ export const toVisit = derived<ToVisitStore, Record<string, string>>(
     return out
   })
 
-export const currentSequenceInitialized = derived<Readable<string[]>, boolean>(currentSequence, $currentSequence => !!$currentSequence[0])
 
-export const pastSequences: Writable<string[][]> = writable([])
-
-type AllSequencesStore = [Readable<string[]>, Readable<string[][]>]
-export const allSequences = derived<AllSequencesStore, string[]>([currentSequence, pastSequences], ([$currentSequence, $pastSequences]) => {
-  const past = $pastSequences.map((ary) => ary.join(''))
-  const current = $currentSequence.join('')
-
-  return [...past, current]
+export const pastSequences: Writable<InstructionObject[][]> = writable([])
+export const currentSequence = derived<Readable<string[]>, InstructionObject[]>(currentInstructionBuffer, $currentInstructionBuffer => {
+  const stream = $currentInstructionBuffer.join('')
+  return stream === '' ? '' : parseInstructionStream(stream)
 })
+export const currentSequenceInitialized = derived<Readable<InstructionObject[]>, boolean>(currentSequence, $currentSequence => !!$currentSequence[0])
+
+type AllSequencesStore = [Readable<InstructionObject[]>, Readable<InstructionObject[][]>]
+export const allSequences = derived<AllSequencesStore, InstructionObject[][]>(
+  [currentSequence, pastSequences],
+  ([$currentSequence, $pastSequences]) => [...$pastSequences, $currentSequence]
+)

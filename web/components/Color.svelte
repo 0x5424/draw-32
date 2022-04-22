@@ -8,7 +8,7 @@
   } from '../util/instruction'
   /* PROPS */
   /* IMPORTS (stores) */
-  import { color, currentSequence, currentSequenceInitialized, strokeMode } from '../stores'
+  import { color, currentInstructionBuffer, currentSequenceInitialized, strokeMode } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-color'
 
@@ -28,8 +28,8 @@
     const newColorIndex = COLOR_INDEX.indexOf($color)
     if (newColorIndex < 0 || newColorIndex >= 16) return
 
-    if (!$currentSequenceInitialized) $currentSequence = [commitStrokeMode($strokeMode)]
-    $currentSequence = [...$currentSequence, commitColor(newColorIndex as ColorIndex)]
+    if (!$currentSequenceInitialized) $currentInstructionBuffer = [commitStrokeMode($strokeMode)]
+    $currentInstructionBuffer = [...$currentInstructionBuffer, commitColor(newColorIndex as ColorIndex)]
   }
   /* STORES (subscriptions) */
   /* LIFECYCLE */

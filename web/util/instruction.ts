@@ -212,8 +212,8 @@ type PerformResetArguments = {
 } & PerformLoadArguments
 
 interface PerformLoadArguments {
-  currentSequenceStore: (arg: string[]) => void
-  pastSequencesStore: (arg: string[][]) => void
+  currentInstructionBufferStore: (arg: string[]) => void
+  pastSequencesStore: (arg: InstructionObject[][]) => void
 }
 /**
  * Reset the webapp state, and provide an optional new set of instructions to reload in it's place
@@ -234,29 +234,33 @@ export const performReset = (stores: PerformResetArguments, newState: string[] |
   stores.directionStore('→')
   stores.prevCursorStore([])
   stores.pastSequencesStore([])
-  stores.currentSequenceStore([])
+  stores.currentInstructionBufferStore([])
 
   if (allInstructions.length > 0) {
-    const { currentSequenceStore, pastSequencesStore } = stores
+    const { currentInstructionBufferStore, pastSequencesStore } = stores
 
-    performLoad({ currentSequenceStore, pastSequencesStore }, allInstructions, [], [])
+    performLoad({ currentInstructionBufferStore, pastSequencesStore }, allInstructions, [], [])
   }
 }
 
 /**
  * The easiest way to ensure instruction parity is to sequentially re-parse everything from 0
  */
-export const performLoad = (stores: PerformLoadArguments, newInstructions: InstructionObject[][], currentState: string[], pastState: string[][]): void => {
+export const performLoad = (stores: PerformLoadArguments, newInstructions: InstructionObject[][], currentBuffer: string[], pastState: InstructionObject[][]): void => {
   // Init stores
-  const {currentSequenceStore: current, pastSequencesStore: past} = stores
+  const {currentInstructionBufferStore: current, pastSequencesStore: past} = stores
 
   // We must prepare new values for current/past _before_ calling the setter function, as we have no way to expand the Readable value from the store
   newInstructions.forEach((sequence: InstructionObject[], i) => {
+    /** @todo Clean this up; At present we cannot write to currentBuffer with instructions, we still use raw strings */
+    const currentState: InstructionObject[] = []
+
     sequence.forEach(instrObj => {
-      currentState.push(formatInstruction(instrObj))
+      currentState.push(instrObj)
+      currentBuffer.push(formatInstruction(instrObj))
     })
     /** @note Thankfully, underlying store will still properly throw overflow error if newCurrent.length > 255 */
-    current(currentState)
+    current(currentBuffer)
 
     // Only set new pastState if we're _NOT_ on the final iteration of our instruction set
     if (newInstructions.length - 1 !== i) pastState = [...pastState, currentState]

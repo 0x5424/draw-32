@@ -13,7 +13,7 @@
   /* IMPORTS (stores) */
   import {
     cw, patternOneLength, patternTwoOffset, patternTwoLength, rawPattern, direction, directionText, prevDirection,
-    currentSequence, cursor, cursorX, cursorY, prevCursor, visited, currentSequenceInitialized, strokeMode,
+    currentInstructionBuffer, cursor, cursorX, cursorY, prevCursor, visited, currentSequenceInitialized, strokeMode,
     patternCoordinates, toVisit
   } from '../stores'
   /* DECLARATIONS (local state) */
@@ -44,12 +44,12 @@
     }
 
 
-    if (!$currentSequenceInitialized) $currentSequence = [commitStrokeMode($strokeMode)]
+    if (!$currentSequenceInitialized) $currentInstructionBuffer = [commitStrokeMode($strokeMode)]
 
     if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText)
     if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor as [number, number])
 
-    $currentSequence = [...$currentSequence, performDraw(drawArgs)]
+    $currentInstructionBuffer = [...$currentInstructionBuffer, performDraw(drawArgs)]
 
     // Lastly, set new coords, set pixels & reset form values
     const [newX, newY] = $patternCoordinates[2]

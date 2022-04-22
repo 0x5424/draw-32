@@ -3,11 +3,12 @@
 
   /* PROPS */
   /* IMPORTS */
-  import { performReset } from '../util/instruction'
+  import { performReset, InstructionObject } from '../util/instruction'
+  import { formatInstruction } from '../util/parse'
   /* IMPORTS (stores) */
   import {
     allSequences,
-    pastSequences, currentSequence,
+    pastSequences, currentSequence, currentInstructionBuffer,
     visited, cursorX, cursorY, color, direction, prevCursor
   } from '../stores'
   /* DECLARATIONS (local state) */
@@ -15,8 +16,11 @@
   let toLoad = ''
 
   /* DECLARATIONS (local functions) */
-  const formatSequence = (binString: string) => {
-    if (!binString || binString === '') return ''
+  const formatSequence = (ary: InstructionObject[]) => {
+    if (!ary) return ''
+    /** @todo Should use a dedicated store for allSequencesAsBinStringArray */
+    const binString = ary.map(obj => formatInstruction(obj)).join('')
+    if (binString === '') return ''
 
     const hex = BigInt(`0b${binString}`).toString(16)
 
@@ -25,7 +29,7 @@
 
   const saveSequence = () => {
     $pastSequences = [...$pastSequences, $currentSequence]
-    $currentSequence = []
+    $currentInstructionBuffer = []
   }
   // const undoSequence = () => {}
   const handleLoadOrReset = (newState: string[] | false = false): void => {
@@ -37,7 +41,7 @@
       directionStore: direction.set,
       prevCursorStore: prevCursor.set,
       pastSequencesStore: pastSequences.set,
-      currentSequenceStore: currentSequence.set,
+      currentInstructionBufferStore: currentInstructionBuffer.set,
     }
 
     performReset(args, newState)
@@ -52,13 +56,13 @@
   const logState = () => console.log('INSTRUCTIONS:', $allSequences)
 
   /* STORES (subscriptions) */
-  $: value = `[\n${$allSequences.map(formatSequence).join(',\n')}\n]`
-  allSequences.subscribe(newArray => {
+  $: value = `[\n  ${$allSequences.map(formatSequence).join(',\n  ')}\n]`
+  allSequences.subscribe((obj: InstructionObject[]) => {
     /**
      * @note We update the local var, `toLoad` as otherwise we have no means to bind a value to the textarea
      * @note This is also the reason for a conditional textarea component when in edit mode
      */
-    toLoad = newArray.map(formatSequence).join('\n')
+    toLoad = obj.map(formatSequence).join('\n')
   })
   $: formattedToLoad = toLoad.split(/[\s,]+/).filter(v => v !== '')
   /* LIFECYCLE */

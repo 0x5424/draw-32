@@ -10,7 +10,7 @@
     PerformDrawArguments
   } from '../util/instruction'
   import {
-    currentSequence, cursor, prevCursor, currentSequenceInitialized, strokeMode,
+    currentInstructionBuffer, cursor, prevCursor, currentSequenceInitialized, strokeMode,
     visited, fillCells
   } from '../stores'
   /* DECLARATIONS (local state) */
@@ -19,10 +19,10 @@
   const onFormSubmit = () => {
     const drawArgs: PerformDrawArguments = {drawInstruction: commitFill()}
 
-    if (!$currentSequenceInitialized) $currentSequence = [commitStrokeMode($strokeMode)]
+    if (!$currentSequenceInitialized) $currentInstructionBuffer = [commitStrokeMode($strokeMode)]
     if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor)
 
-    $currentSequence = [...$currentSequence, performDraw(drawArgs)]
+    $currentInstructionBuffer = [...$currentInstructionBuffer, performDraw(drawArgs)]
 
     $visited = {...$visited, ...$fillCells}
   }

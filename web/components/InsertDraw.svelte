@@ -15,7 +15,7 @@
   import {
     cw, insertLength, direction, directionText, prevDirection,
     cursor, cursorX, cursorY, prevCursor, visited, currentSequenceInitialized, strokeMode,
-    currentSequence, insertCoordinates, toVisit
+    currentInstructionBuffer, insertCoordinates, toVisit
   } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-insert-draw'
@@ -26,12 +26,12 @@
       drawInstruction: commitInsertDraw({ cw: $cw, length: $insertLength })
     }
 
-    if (!$currentSequenceInitialized) $currentSequence = [commitStrokeMode($strokeMode)]
+    if (!$currentSequenceInitialized) $currentInstructionBuffer = [commitStrokeMode($strokeMode)]
 
     if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText)
     if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor as [number, number])
 
-    $currentSequence = [...$currentSequence, performDraw(drawArgs)]
+    $currentInstructionBuffer = [...$currentInstructionBuffer, performDraw(drawArgs)]
 
     // Lastly, set new coords, set pixels & reset form values
     const [newX, newY] = $insertCoordinates[1]
