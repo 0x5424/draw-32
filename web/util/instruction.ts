@@ -203,17 +203,17 @@ export const performDraw = (instructions: PerformDrawArguments) => {
 }
 
 type PerformResetArguments = {
-  visitedStore: CanvasLike;
-  cursorXStore: number;
-  cursorYStore: number;
-  prevCursorStore: [number, number] | []
-  colorStore: string;
-  directionStore: DirectionArrow;
-} & Partial<PerformLoadArguments>
+  visitedStore: (arg: CanvasLike) => void
+  cursorXStore: (arg: number) => void
+  cursorYStore: (arg: number) => void
+  prevCursorStore: (arg: [number, number] | []) => void
+  colorStore: (arg: string) => void
+  directionStore: (arg: DirectionArrow) => void
+} & PerformLoadArguments
 
 interface PerformLoadArguments {
-  currentSequenceStore: string[];
-  pastSequencesStore: string[][];
+  currentSequenceStore: (arg: string[]) => void
+  pastSequencesStore: (arg: string[][]) => void
 }
 /**
  * Reset the webapp state, and provide an optional new set of instructions to reload in it's place
@@ -227,31 +227,35 @@ export const performReset = (stores: PerformResetArguments, newState?: string[])
   let allInstructions: InstructionObject[][] = []
   if (newState) newState.forEach(str => allInstructions.push(parseInstructionStream(str)))
 
-  stores.visitedStore = {}
-  stores.cursorXStore = 1
-  stores.cursorYStore = 1
-  stores.colorStore = '000000'
-  stores.directionStore = '→'
-  stores.prevCursorStore = []
+  stores.visitedStore({})
+  stores.cursorXStore(1)
+  stores.cursorYStore(1)
+  stores.colorStore('000000')
+  stores.directionStore('→')
+  stores.prevCursorStore([])
+  stores.pastSequencesStore([])
+  stores.currentSequenceStore([])
 
   if (allInstructions.length > 0) {
-    const {currentSequenceStore: current, pastSequencesStore: past} = stores
+    let { currentSequenceStore, pastSequencesStore } = stores
 
-    if (!current || !past) throw new Error('Need sequence stores to perform instruction load')
-    performLoad(allInstructions, { currentSequenceStore: current, pastSequencesStore: past })
+    performLoad(allInstructions, { currentSequenceStore, pastSequencesStore })
   }
 }
 
 export const performLoad = (newInstructions: InstructionObject[][], stores: PerformLoadArguments): void => {
   // Init stores
   let {currentSequenceStore: current, pastSequencesStore: past} = stores
-  past = []
+  let newPast = []
 
   newInstructions.forEach((sequence: InstructionObject[]) => {
-    current = []
+    const newCurrent = []
     sequence.forEach(instrObj => {
-      current = [...current, formatInstruction(instrObj)]
+      newCurrent.push(formatInstruction(instrObj))
     })
-    past = [...past, current]
+    current(newCurrent)
+
+    newPast = [...newPast, newCurrent]
   })
+  past(newPast)
 }

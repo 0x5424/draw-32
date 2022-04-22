@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 import {
-  InstructionObject,
   discernInstructionName, parseInstruction, parseInstructionStream,
   formatInstruction
 } from '../parse'
@@ -87,7 +86,7 @@ describe('parse.ts', () => {
           expectedStroke1, expectedJump, expectedInsertDraw, expectedDown, expectedPatternDraw
         ].map(([i,]) => i)
 
-        // Same as sequence(0|1) but hex-encoded
+        // Same instructions as `sequence(0|1)` but in hex format
         const hex0 = '0x2f70016aefe'
         const hex1 = 'fdc1ef402d5'
 

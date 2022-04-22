@@ -3,9 +3,9 @@
  */
 import type { DirectionText } from '../stores'
 
-import type {
-  PatternInstruction, InsertInstruction, CoordinatesTuple, StrokeMode, ColorIndex,
-  PatternOffset
+import {
+  PatternInstruction, InsertInstruction, CoordinatesTuple, StrokeMode, ColorIndex, PatternOffset,
+  commitInsertDraw, commitPatternDraw, commitRotate, commitColor, commitFill, commitJump, commitStrokeMode
 } from './instruction'
 
 import { decodeRleAsTuple } from './encode'
@@ -149,15 +149,21 @@ export const parseInstructionStream = (instructions: string): InstructionObject[
   return out
 }
 
-/** @todo Remove when `allSequences` store is InstructionObject[][] */
+/**
+ * @todo Remove when `allSequences` store is InstructionObject[][]
+ *
+ * @todo Safer typecasts, see InstructionObject
+ *
+ * @see {@link InstructionObject}
+ */
 export const formatInstruction = (obj: InstructionObject): string => {
-  const { name } = obj
+  const { name, arg } = obj
 
-  if (name === 'commitInsertDraw') return 'fixme'
-  if (name === 'commitPatternDraw') return 'fixme'
-  if (name === 'commitRotate') return 'fixme'
-  if (name === 'commitColor') return 'fixme'
-  if (name === 'commitFill') return 'fixme'
-  if (name === 'commitJump') return 'fixme'
-  if (name === 'commitStrokeMode') return 'fixme'
+  if (name === 'commitStrokeMode') return commitStrokeMode(arg as StrokeMode)
+  if (name === 'commitInsertDraw') return commitInsertDraw(arg as InsertInstruction)
+  if (name === 'commitPatternDraw') return commitPatternDraw(arg as PatternInstruction)
+  if (name === 'commitRotate') return commitRotate(arg as DirectionText)
+  if (name === 'commitColor') return commitColor(arg as ColorIndex)
+  if (name === 'commitFill') return commitFill()
+  if (name === 'commitJump') return commitJump(...arg as CoordinatesTuple)
 }

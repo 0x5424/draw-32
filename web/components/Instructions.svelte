@@ -3,8 +3,13 @@
 
   /* PROPS */
   /* IMPORTS */
+  import { performReset } from '../util/instruction'
   /* IMPORTS (stores) */
-  import { pastSequences, currentSequence, allSequences } from '../stores'
+  import {
+    allSequences,
+    pastSequences, currentSequence,
+    visited, cursorX, cursorY, color, direction, prevCursor
+  } from '../stores'
   /* DECLARATIONS (local state) */
 
   /* DECLARATIONS (local functions) */
@@ -21,6 +26,21 @@
     $currentSequence = []
   }
   // const undoSequence = () => {}
+
+  const resetSequences = () => {
+    const args = {
+      visitedStore: visited.set,
+      cursorXStore: cursorX.set,
+      cursorYStore: cursorY.set,
+      colorStore: color.set,
+      directionStore: direction.set,
+      prevCursorStore: prevCursor.set,
+      pastSequencesStore: pastSequences.set,
+      currentSequenceStore: currentSequence.set,
+    }
+
+    performReset(args)
+  }
 
   const logState = () => console.log('INSTRUCTIONS:', $allSequences)
 
@@ -44,6 +64,7 @@
 <div>
   <button on:click={saveSequence}>Save</button>
   <!-- <button on:click={undoSequence}>Undo</button> -->
+  <button on:click={resetSequences}>Reset</button>
   <button on:click={logState}>Log</button>
 </div>
 
