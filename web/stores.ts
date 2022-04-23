@@ -12,9 +12,16 @@ import {
 
 import { InstructionObject, parseInstructionStream } from './util/parse'
 
-/**
- * Local utility function to evaluate which cells should be filled surrounding a pair of coords
- */
+/** Helper fn to retrieve current store value, then immediately unsubscribe (lambda) */
+export const getCurrentStoreValue = <T>(store: Readable<T>): T => {
+  let value: T
+  store.subscribe((currentValue) => {
+    value = currentValue
+  })()
+
+  return value
+}
+
 interface GetStrokeCellsParameters {
   mode: StrokeMode;
   x: number;
@@ -23,6 +30,10 @@ interface GetStrokeCellsParameters {
   visited: CanvasLike;
   color: string;
 }
+
+/**
+ * Local utility function to evaluate which cells should be filled surrounding a pair of coords
+ */
 const getStrokeCells = (args: GetStrokeCellsParameters): CoordinatesTuple[] => {
   const {
     mode,
@@ -410,12 +421,44 @@ export const allSequences = derived<AllSequencesStore, InstructionObject[][]>(
   ([$currentSequence, $pastSequences]) => [...$pastSequences, $currentSequence]
 )
 
+// Requires all stores that are referenced as args, and a few webapp-specific stores for paint
+export type ExecutableStores = {
+  /* Stores used to initialize canvas */
+  currentInstructionBufferStore: Writable<string[]>
+  pastSequencesStore: Writable<InstructionObject[][]>
+  /* Main stores to modify canvas, used by all */
+  cwStore: Writable<boolean>
+  visitedStore: Writable<CanvasLike>
+  drawModeStore: Writable<DrawMode>
+  toVisitStore: Readable<CanvasLike>
+  /* STROKE */
+  strokeModeStore: Writable<StrokeMode>
+  /* PATTERN */
+  patternOneLengthStore: Writable<PatternOffset>
+  patternTwoOffsetStore: Writable<PatternOffset>
+  rawPatternStore: Writable<string>
+  patternCoordinatesStore: Readable<PatternCoordinatesResult>
+  /* INSERT */
+  insertLengthStore: Writable<number>
+  insertCoordinatesStore: Readable<InsertCoordinatesResult>
+  /* DIRECTION */
+  directionStore: Writable<DirectionArrow>
+  prevDirectionStore: Writable<DirectionArrow | ''>
+  /* COLOR */
+  colorStore: Writable<string>
+  /* FILL */
+  /* JUMP */
+  cursorXStore: Writable<number>
+  cursorYStore: Writable<number>
+  prevCursorStore: Writable<CoordinatesTuple | []>
+}
+
 /**
  * Helper object for grabbing all stores needed to replay instructions
  *
  * @see {@link instruction.ts#execInstruction}
  */
-export const executableStores = {
+export const executableStores: ExecutableStores = {
   cwStore: cw,
   visitedStore: visited,
   drawModeStore: drawMode,

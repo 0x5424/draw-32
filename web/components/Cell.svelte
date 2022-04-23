@@ -82,6 +82,7 @@
   .cell-visited { color: rgba(0,0,0, 0) }
   .cell-visited:hover {
     color: unset;
+    background: unset !important;
     border: inset 1px #bfb;
   }
 

@@ -6,15 +6,13 @@
   import Form from './Form.svelte'
   import Input from './Input.svelte'
 
-  import {
-    commitRotate, commitPatternDraw, commitJump, commitStrokeMode, performDraw,
-    PerformDrawArguments, PatternOffset
-  } from '../util/instruction'
+  import { appendSequences, PatternInstruction } from '../util/instruction'
+  import type { InstructionObject } from '../util/parse'
   /* IMPORTS (stores) */
   import {
     cw, patternOneLength, patternTwoOffset, patternTwoLength, rawPattern, direction, directionText, prevDirection,
-    currentInstructionBuffer, cursor, cursorX, cursorY, prevCursor, visited, currentSequenceInitialized, strokeMode,
-    patternCoordinates, toVisit
+    cursor, prevCursor, currentSequenceInitialized, strokeMode,
+    executableStores
   } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-pattern-draw'
@@ -34,32 +32,22 @@
   }
 
   const onFormSubmit = () => {
-    const drawArgs: PerformDrawArguments = {
-      drawInstruction: commitPatternDraw({
+    const draw: InstructionObject = {
+      name: 'commitPatternDraw',
+      arg: <PatternInstruction>{
         cw: $cw,
-        p1Length: $patternOneLength as PatternOffset,
-        p2Offset: $patternTwoOffset as PatternOffset,
+        p1Length: $patternOneLength,
+        p2Offset: $patternTwoOffset,
         pattern: $rawPattern,
-      })
+      }
     }
+    let instructions: InstructionObject[] = [draw]
 
+    if ($direction !== $prevDirection) instructions.unshift({ name: 'commitRotate', arg: $directionText })
+    if ($cursor.join() !== $prevCursor.join()) instructions.unshift({ name: 'commitJump', arg: $cursor })
+    if (!$currentSequenceInitialized) instructions.unshift({ name: 'commitStrokeMode', arg: $strokeMode })
 
-    if (!$currentSequenceInitialized) $currentInstructionBuffer = [commitStrokeMode($strokeMode)]
-
-    if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText)
-    if ($cursor.join() !== $prevCursor.join()) drawArgs.jumpInstruction = commitJump(...$cursor)
-
-    $currentInstructionBuffer = [...$currentInstructionBuffer, performDraw(drawArgs)]
-
-    // Lastly, set new coords, set pixels & reset form values
-    const [newX, newY] = $patternCoordinates[2]
-
-    $visited = {...$visited, ...$toVisit}
-    $prevDirection = $direction
-    $prevCursor = [newX, newY]
-    $cursorX = newX
-    $cursorY = newY
-    $rawPattern = ''
+    appendSequences(executableStores, instructions)
   }
 
   /* NOTE: Absolutely crazy WTF gotcha: Safari onSubmit is never firing, _only_ for this component. As workaround, using accesskey */

@@ -6,42 +6,32 @@
   import Form from './Form.svelte'
   import Input from './Input.svelte'
 
-  import {
-    commitRotate, commitInsertDraw, commitJump, commitStrokeMode, performDraw,
-    PerformDrawArguments
-  } from '../util/instruction'
+  import { appendSequences, InsertInstruction } from '../util/instruction'
+  import type { InstructionObject } from '../util/parse'
 
   /* IMPORTS (stores) */
   import {
     cw, insertLength, direction, directionText, prevDirection,
-    cursor, cursorX, cursorY, prevCursor, visited, currentSequenceInitialized, strokeMode,
-    currentInstructionBuffer, insertCoordinates, toVisit
+    cursor, prevCursor, currentSequenceInitialized, strokeMode,
+    executableStores
   } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-insert-draw'
   /* DECLARATIONS (local functions) */
   const onFormSubmit = () => {
     if (!$insertLength) return
-    const drawArgs: PerformDrawArguments = {
-      drawInstruction: commitInsertDraw({ cw: $cw, length: $insertLength })
+
+    const draw: InstructionObject = {
+      name: 'commitInsertDraw',
+      arg: <InsertInstruction>{ cw: $cw, length: $insertLength }
     }
+    let instructions: InstructionObject[] = [draw]
 
-    if (!$currentSequenceInitialized) $currentInstructionBuffer = [commitStrokeMode($strokeMode)]
+    if ($direction !== $prevDirection) instructions.unshift({ name: 'commitRotate', arg: $directionText })
+    if ($cursor.join() !== $prevCursor.join()) instructions.unshift({ name: 'commitJump', arg: $cursor })
+    if (!$currentSequenceInitialized) instructions.unshift({ name: 'commitStrokeMode', arg: $strokeMode })
 
-    if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText)
-    if ($cursor.join() !== $prevCursor.join()) drawArgs.jumpInstruction = commitJump(...$cursor)
-
-    $currentInstructionBuffer = [...$currentInstructionBuffer, performDraw(drawArgs)]
-
-    // Lastly, set new coords, set pixels & reset form values
-    const [newX, newY] = $insertCoordinates[1]
-
-    $visited = {...$visited, ...$toVisit}
-    $prevDirection = $direction
-    $prevCursor = [newX, newY]
-    $cursorX = newX
-    $cursorY = newY
-    $insertLength = 1
+    appendSequences(executableStores, instructions)
   }
   /* STORES (subscriptions) */
   /* LIFECYCLE */

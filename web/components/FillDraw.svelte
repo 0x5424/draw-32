@@ -4,27 +4,25 @@
   /* PROPS */
   /* IMPORTS */
   import Form from './Form.svelte'
+  import { appendSequences } from '../util/instruction'
+  import type { InstructionObject } from '../util/parse'
   /* IMPORTS (stores) */
   import {
-    commitFill, commitJump, commitStrokeMode, performDraw,
-    PerformDrawArguments
-  } from '../util/instruction'
-  import {
-    currentInstructionBuffer, cursor, prevCursor, currentSequenceInitialized, strokeMode,
-    visited, toVisit
+    cursor, prevCursor, currentSequenceInitialized, strokeMode,
+    executableStores
   } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-fill-draw'
   /* DECLARATIONS (local functions) */
   const onFormSubmit = () => {
-    const drawArgs: PerformDrawArguments = {drawInstruction: commitFill()}
+    const draw: InstructionObject = { name: 'commitFill', arg: null }
+    let instructions: InstructionObject[] = [draw]
 
-    if (!$currentSequenceInitialized) $currentInstructionBuffer = [commitStrokeMode($strokeMode)]
-    if ($cursor.join() !== $prevCursor.join()) $currentInstructionBuffer = drawArgs.jumpInstruction = commitJump(...$cursor)
 
-    $currentInstructionBuffer = [...$currentInstructionBuffer, performDraw(drawArgs)]
+    if ($cursor.join() !== $prevCursor.join()) instructions.unshift({ name: 'commitJump', arg: $cursor })
+    if (!$currentSequenceInitialized) instructions.unshift({ name: 'commitStrokeMode', arg: $strokeMode })
 
-    $visited = {...$visited, ...$toVisit}
+    appendSequences(executableStores, instructions)
   }
   /* STORES (subscriptions) */
   $: fillText = `Fill at ${$cursor.join()}`

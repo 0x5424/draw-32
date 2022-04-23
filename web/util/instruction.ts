@@ -1,12 +1,10 @@
 /** @todo Consider TS template literal for return types here */
 
-import type { Writable, Readable } from 'svelte/store'
-
 import { encodeRle } from './encode'
 import { InstructionObject, parseInstructionStream, formatInstruction } from './parse'
-import type {
-  DirectionText, DirectionArrow, CanvasLike, DrawMode,
-  PatternCoordinatesResult, InsertCoordinatesResult
+import {
+  DirectionText, DirectionArrow, CanvasLike, ExecutableStores,
+  getCurrentStoreValue
 } from '../stores'
 import { PALETTE } from './palette'
 
@@ -206,53 +204,12 @@ export const performDraw = (instructions: PerformDrawArguments) => {
   return output.join('')
 }
 
-/** Helper fn to retrieve current store value, then immediately unsubscribe (lambda) */
-const getCurrentStoreValue = <T>(store: Readable<T>): T => {
-  let value: T
-  store.subscribe((currentValue) => {
-    value = currentValue
-  })()
-
-  return value
-}
-
-// Requires all stores that are referenced as args, and a few webapp-specific stores for paint
-type ExecInstructionArguments = {
-  /* Stores used to initialize canvas */
-  currentInstructionBufferStore: Writable<string[]>
-  pastSequencesStore: Writable<InstructionObject[][]>
-  /* Main stores to modify canvas, used by all */
-  cwStore: Writable<boolean>
-  visitedStore: Writable<CanvasLike>
-  drawModeStore: Writable<DrawMode>
-  toVisitStore: Readable<CanvasLike>
-  /* STROKE */
-  strokeModeStore: Writable<StrokeMode>
-  /* PATTERN */
-  patternOneLengthStore: Writable<PatternOffset>
-  patternTwoOffsetStore: Writable<PatternOffset>
-  rawPatternStore: Writable<string>
-  patternCoordinatesStore: Readable<PatternCoordinatesResult>
-  /* INSERT */
-  insertLengthStore: Writable<number>
-  insertCoordinatesStore: Readable<InsertCoordinatesResult>
-  /* DIRECTION */
-  directionStore: Writable<DirectionArrow>
-  prevDirectionStore: Writable<DirectionArrow>
-  /* COLOR */
-  colorStore: Writable<string>
-  /* FILL */
-  /* JUMP */
-  cursorXStore: Writable<number>
-  cursorYStore: Writable<number>
-  prevCursorStore: Writable<CoordinatesTuple | []>
-}
 /**
  * Execute the specified instruction, modifying canvas state; Does not modify instruction state
  *
  * @see {@link performLoad | Function to modify instruction state}
  */
-const execInstruction = (instruction: InstructionObject, stores: ExecInstructionArguments) => {
+const execInstruction = (instruction: InstructionObject, stores: ExecutableStores) => {
   const { name, arg } = instruction
 
   if (name === 'commitStrokeMode') return stores.strokeModeStore.set(arg as StrokeMode)
@@ -302,7 +259,7 @@ const execInstruction = (instruction: InstructionObject, stores: ExecInstruction
      * @note Typecheck is to silence tsc, as empty array will never appear
      * @todo Ensure insertDraw[1] always returns next cursor (assume length always >= 1)
      */
-    const possibleCursor = getCurrentStoreValue<[any, CoordinatesTuple | []]>(stores.insertCoordinatesStore)[1]
+    const possibleCursor = getCurrentStoreValue<[unknown, CoordinatesTuple | []]>(stores.insertCoordinatesStore)[1]
     if (possibleCursor.length === 0) throw new Error('Empty tuple received from InsertInstruction')
 
     newCursor = [...possibleCursor]
@@ -316,7 +273,7 @@ const execInstruction = (instruction: InstructionObject, stores: ExecInstruction
     stores.rawPatternStore.set(pattern)
 
     /** @note See above typecheck comment in commitInsertDraw */
-    const possibleCursor = getCurrentStoreValue<[any, any, CoordinatesTuple | []]>(stores.patternCoordinatesStore)[2]
+    const possibleCursor = getCurrentStoreValue<[unknown, unknown, CoordinatesTuple | []]>(stores.patternCoordinatesStore)[2]
     if (possibleCursor.length === 0) throw new Error('Empty tuple received from PatternInstruction')
 
     newCursor = [...possibleCursor]
@@ -326,12 +283,17 @@ const execInstruction = (instruction: InstructionObject, stores: ExecInstruction
   const toVisit = getCurrentStoreValue<CanvasLike>(stores.toVisitStore)
   stores.visitedStore.set({...currentVisited, ...toVisit})
 
-  // Lastly, update the cursor position (is redundant for commitFill)
+  // Lastly, update the cursor position & rotation (is redundant for commitFill)
   if (name === 'commitFill') return
+  const { directionStore, prevDirectionStore } = stores
+  const direction = getCurrentStoreValue<DirectionArrow>(directionStore)
 
   cursorXStore.set(newCursor[0])
   cursorYStore.set(newCursor[1])
-  prevCursorStore.set(newCursor)
+  prevCursorStore.set(newCursor) // Location of last write
+  prevDirectionStore.set(direction) // Location of last write
+  if (name === 'commitInsertDraw') stores.insertLengthStore.set(1) // Reinitialize
+  if (name === 'commitPatternDraw') stores.rawPatternStore.set('') // Reinitialize
 }
 
 /**
@@ -341,7 +303,7 @@ const execInstruction = (instruction: InstructionObject, stores: ExecInstruction
  *
  * @todo Persist `allSequences` store as InstructionObject[][], thus removing need to re-convert back to raw bitstream
  */
-export const performReset = (stores: ExecInstructionArguments, newState: string[] | false = false): void => {
+export const performReset = (stores: ExecutableStores, newState: string[] | false = false): void => {
   // 1. Parse instructions first, as to not reset app state before validating
   const allInstructions: InstructionObject[][] = []
   if (newState) newState.forEach(str => allInstructions.push(parseInstructionStream(str)))
@@ -355,35 +317,42 @@ export const performReset = (stores: ExecInstructionArguments, newState: string[
   stores.pastSequencesStore.set([])
   stores.currentInstructionBufferStore.set([])
 
-  if (allInstructions.length > 0) {
-    const { currentInstructionBufferStore, pastSequencesStore } = stores
-
-    performLoad(stores, allInstructions, [], [])
-  }
+  if (allInstructions.length > 0) performLoad(stores, allInstructions)
 }
 
 /**
  * The easiest way to ensure instruction parity is to sequentially re-parse everything from 0
  */
-export const performLoad = (stores: ExecInstructionArguments, newInstructions: InstructionObject[][], currentBuffer: string[], pastState: InstructionObject[][]): void => {
+export const performLoad = (stores: ExecutableStores, toLoad: InstructionObject[][]): void => {
   // Init stores
-  const {currentInstructionBufferStore: current, pastSequencesStore: past} = stores
+  const { pastSequencesStore: past } = stores
+  let pastState = getCurrentStoreValue<InstructionObject[][]>(past)
 
   // We must prepare new values for current/past _before_ calling the setter function, as we have no way to expand the Readable value from the store
-  newInstructions.forEach((sequence: InstructionObject[], i) => {
-    /** @todo Clean this up; At present we cannot write to currentBuffer with instructions, we still use raw strings */
-    const currentState: InstructionObject[] = []
-
-    sequence.forEach(instrObj => {
-      currentState.push(instrObj)
-      execInstruction(instrObj, stores)
-      currentBuffer.push(formatInstruction(instrObj))
-    })
-    /** @note Thankfully, underlying store will still properly throw overflow error if newCurrent.length > 255 */
-    current.set(currentBuffer)
+  toLoad.forEach((sequence: InstructionObject[], i) => {
+    appendSequences(stores, sequence)
 
     // Only set new pastState if we're _NOT_ on the final iteration of our instruction set
-    if (newInstructions.length - 1 !== i) pastState = [...pastState, currentState]
+    if (toLoad.length - 1 !== i) pastState = [...pastState, sequence]
   })
   past.set(pastState)
+}
+
+/**
+ * Append to `currentSequence` and `currentInstructionBuffer`
+ *
+ * @todo Clean this up; At present we cannot write to currentBuffer with instructions, we still use raw strings
+ */
+export const appendSequences = (stores: ExecutableStores, toAppend: InstructionObject[]): void => {
+  const currentInstructions = stores.currentInstructionBufferStore
+  const buffer = getCurrentStoreValue<string[]>(currentInstructions)
+
+  console.log('Will append:', toAppend)
+  console.log('Instructions before:', buffer)
+  toAppend.forEach((obj) => {
+    execInstruction(obj, stores)
+    buffer.push(formatInstruction(obj)) // Re-formatting until @todo solved
+  })
+  console.log('After:', buffer)
+  currentInstructions.set(buffer)
 }
