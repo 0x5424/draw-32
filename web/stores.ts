@@ -118,7 +118,7 @@ export const rotationIncrements = derived<Readable<RotationText>, [number, numbe
   return INCREMENTS[$rotationText]
 })
 
-type DrawMode = 'pattern' | 'insert' | 'fill'
+export type DrawMode = 'pattern' | 'insert' | 'fill'
 export const drawMode: Writable<DrawMode> = writable('pattern')
 
 /* Pattern controls */
@@ -201,7 +201,7 @@ export const strokeCells = derived<StrokeCellsStore, CoordinatesTuple[]>([stroke
 /* Fill info */
 /** @todo Performance */
 type FillCellsStore = [Readable<CoordinatesTuple>, Readable<MatrixLike>, Readable<string>, Readable<CanvasLike>]
-export const fillCells = derived<FillCellsStore, CanvasLike>([cursor, matrix, color, canvas], ([$cursor, $matrix, $color, $canvas]) => {
+const fillCells = derived<FillCellsStore, CanvasLike>([cursor, matrix, color, canvas], ([$cursor, $matrix, $color, $canvas]) => {
   const maxHeight = $matrix.length
   const maxWidth = $matrix[0].length
   // Guard clause for uninitialized matrix
@@ -250,7 +250,7 @@ type PatternCoordinatesStore = [
   Readable<PatternTwoLength>, // P2
   Readable<string> // Raw pattern
 ]
-type PatternCoordinatesResult = [CoordinatesTuple[], CoordinatesTuple[], CoordinatesTuple | []]
+export type PatternCoordinatesResult = [CoordinatesTuple[], CoordinatesTuple[], CoordinatesTuple | []]
 export const patternCoordinates = derived<PatternCoordinatesStore, PatternCoordinatesResult>(
   [cursor, directionText, rotationText, directionIncrements, patternOneLength, patternTwoLength, rawPattern],
   ([$cursor, $directionText, $rotationText, $directionIncrements, $patternOneLength, $patternTwoLength, $rawPattern]) => {
@@ -298,7 +298,7 @@ type InsertCoordinatesStore = [
   Readable<RotationText>,
   Readable<number> // Insertion length
 ]
-type InsertCoordinatesResult = [CoordinatesTuple[], CoordinatesTuple | []]
+export type InsertCoordinatesResult = [CoordinatesTuple[], CoordinatesTuple | []]
 export const insertCoordinates = derived<InsertCoordinatesStore, InsertCoordinatesResult>(
   [cursor, directionText, rotationText, insertLength],
   ([$cursor, $directionText, $rotationText, $insertLength]) => {
@@ -327,29 +327,30 @@ export const insertCoordinates = derived<InsertCoordinatesStore, InsertCoordinat
   })
 
 /* Instructions */
+type Subscriber<T, R = void> = (v: T) => R
 export const currentInstructionBuffer: Writable<string[]> = (() => {
-  let value = []
-  let subs = []
+  let value: string[] = []
+  let subs: Subscriber<string[]>[] = []
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const subscribe = (handler: any) => {
+  const subscribe = (handler: Subscriber<string[]>) => {
     subs = [...subs, handler]
     handler(value)
     return () => subs = subs.filter(sub => sub !== handler)
   }
 
   const set = (newInstruction: string[]) => {
-    /**
-     * Custom `set` validation to throw on overflow
-     */
+    /* Custom `set` validation to throw on overflow */
     if (newInstruction.join('').length > 255) throw new Error('Instruction will overflow; Refusing write')
 
     value = newInstruction
     subs.forEach(sub => sub(value))
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const update = (update: any) => set(update(value))
+  /**
+   * Store will provide the current `value` to the caller,
+   * Caller is expected to return new state for `value`
+   */
+  const update = (handler: Subscriber<string[], string[]>) => set(handler(value))
 
   return { subscribe, set, update }
 })()
@@ -364,7 +365,7 @@ type ToVisitStore = [
   Readable<CanvasLike>,
   Readable<CanvasLike>
 ]
-export const toVisit = derived<ToVisitStore, Record<string, string>>(
+export const toVisit = derived<ToVisitStore, CanvasLike>(
   [strokeMode, color, directionText, drawMode, patternCoordinates, insertCoordinates, visited, fillCells],
   ([$strokeMode, $color, $directionText, $drawMode, $patternCoordinates, $insertCoordinates, $visited, $fillCells]) => {
     const out = {}
@@ -399,7 +400,7 @@ export const toVisit = derived<ToVisitStore, Record<string, string>>(
 export const pastSequences: Writable<InstructionObject[][]> = writable([])
 export const currentSequence = derived<Readable<string[]>, InstructionObject[]>(currentInstructionBuffer, $currentInstructionBuffer => {
   const stream = $currentInstructionBuffer.join('')
-  return stream === '' ? '' : parseInstructionStream(stream)
+  return stream === '' ? [] : parseInstructionStream(stream)
 })
 export const currentSequenceInitialized = derived<Readable<InstructionObject[]>, boolean>(currentSequence, $currentSequence => !!$currentSequence[0])
 
@@ -408,3 +409,25 @@ export const allSequences = derived<AllSequencesStore, InstructionObject[][]>(
   [currentSequence, pastSequences],
   ([$currentSequence, $pastSequences]) => [...$pastSequences, $currentSequence]
 )
+
+/**
+ * Helper object for grabbing all stores needed to replay instructions
+ *
+ * @see {@link instruction.ts#execInstruction}
+ */
+export const executableStores = {
+  cwStore: cw,
+  visitedStore: visited,
+  drawModeStore: drawMode,
+  toVisitStore: toVisit,
+  strokeModeStore: strokeMode,
+  patternOneLengthStore: patternOneLength,
+  patternTwoOffsetStore: patternTwoOffset,
+  rawPatternStore: rawPattern,
+  insertLengthStore: insertLength,
+  directionStore: direction,
+  prevDirectionStore: prevDirection,
+  colorStore: color,
+  cursorXStore: cursorX,
+  cursorYStore: cursorY,
+} as const

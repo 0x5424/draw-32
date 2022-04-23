@@ -1,10 +1,28 @@
+/** @todo Consider TS template literal for return types here */
+
+import type { Writable, Readable } from 'svelte/store'
+
 import { encodeRle } from './encode'
 import { InstructionObject, parseInstructionStream, formatInstruction } from './parse'
-import type { DirectionText, DirectionArrow, CanvasLike } from '../stores'
+import type {
+  DirectionText, DirectionArrow, CanvasLike, DrawMode,
+  PatternCoordinatesResult, InsertCoordinatesResult
+} from '../stores'
+import { PALETTE } from './palette'
 
-/**
- * @todo Consider TS template literal for return types here
- */
+export interface PatternInstruction {
+  cw: boolean;
+  p1Length: PatternOffset;
+  p2Offset: PatternOffset;
+  pattern: string;
+}
+
+export interface InsertInstruction {
+  cw: boolean;
+  length: number;
+}
+
+export type PatternOffset = 1 | 2 | 3 | 4;
 
 /**
  * Raw format: (0, *, 1, N) - Minimum 5; VL = 00 (1)
@@ -72,12 +90,11 @@ import type { DirectionText, DirectionArrow, CanvasLike } from '../stores'
  *
  * @see {@link ./encode.ts#enodeRle}
  */
-export interface InsertInstruction {
-  cw: boolean;
-  length: number;
-}
+export const commitInsertDraw = (instruction: InsertInstruction) => {
+  const rotation = instruction.cw ? '0' : '1'
 
-export type PatternOffset = 1 | 2 | 3 | 4;
+  return ['0', rotation, '1', encodeRle(instruction.length)].join('')
+}
 
 /**
  * Raw format: (0, *, 0, ****, VL, N) - Minimum 10; VL = 00 (1) N = *
@@ -89,19 +106,6 @@ export type PatternOffset = 1 | 2 | 3 | 4;
  * - `VL` = Variable; RLE encoded length of pattern to insert (# bits always divisible by 2)
  * - `N` = Variable; Bitstream instructions read sequentially, wherein 0 inserts P1, 1 inserts P2
  */
-export interface PatternInstruction {
-  cw: boolean;
-  p1Length: PatternOffset;
-  p2Offset: PatternOffset;
-  pattern: string;
-}
-
-export const commitInsertDraw = (instruction: InsertInstruction) => {
-  const rotation = instruction.cw ? '0' : '1'
-
-  return ['0', rotation, '1', encodeRle(instruction.length)].join('')
-}
-
 export const commitPatternDraw = (instruction: PatternInstruction) => {
   const { p1Length, p2Offset, pattern } = instruction
 
@@ -203,18 +207,30 @@ export const performDraw = (instructions: PerformDrawArguments) => {
 }
 
 type PerformResetArguments = {
-  visitedStore: (arg: CanvasLike) => void
-  cursorXStore: (arg: number) => void
-  cursorYStore: (arg: number) => void
-  prevCursorStore: (arg: [number, number] | []) => void
-  colorStore: (arg: string) => void
-  directionStore: (arg: DirectionArrow) => void
+  visitedStore: Writable<CanvasLike>
+  cursorXStore: Writable<number>
+  cursorYStore: Writable<number>
+  prevCursorStore: Writable<[number, number] | []>
+  colorStore: Writable<string>
+  directionStore: Writable<DirectionArrow>
 } & PerformLoadArguments
 
 interface PerformLoadArguments {
-  currentInstructionBufferStore: (arg: string[]) => void
-  pastSequencesStore: (arg: InstructionObject[][]) => void
+  currentInstructionBufferStore: Writable<string[]>
+  pastSequencesStore: Writable<InstructionObject[][]>
 }
+
+
+/** Helper fn to retrieve current store value, then immediately unsubscribe (lambda) */
+const getCurrentStoreValue = <T>(store: Readable<T>): T => {
+  let value: T
+  store.subscribe((currentValue) => {
+    value = currentValue
+  })()
+
+  return value
+}
+
 /**
  * Reset the webapp state, and provide an optional new set of instructions to reload in it's place
  *
@@ -227,14 +243,14 @@ export const performReset = (stores: PerformResetArguments, newState: string[] |
   const allInstructions: InstructionObject[][] = []
   if (newState) newState.forEach(str => allInstructions.push(parseInstructionStream(str)))
 
-  stores.visitedStore({})
-  stores.cursorXStore(1)
-  stores.cursorYStore(1)
-  stores.colorStore('000000')
-  stores.directionStore('→')
-  stores.prevCursorStore([])
-  stores.pastSequencesStore([])
-  stores.currentInstructionBufferStore([])
+  stores.visitedStore.set({})
+  stores.cursorXStore.set(1)
+  stores.cursorYStore.set(1)
+  stores.colorStore.set('000000')
+  stores.directionStore.set('→')
+  stores.prevCursorStore.set([])
+  stores.pastSequencesStore.set([])
+  stores.currentInstructionBufferStore.set([])
 
   if (allInstructions.length > 0) {
     const { currentInstructionBufferStore, pastSequencesStore } = stores
@@ -258,12 +274,13 @@ export const performLoad = (stores: PerformLoadArguments, newInstructions: Instr
     sequence.forEach(instrObj => {
       currentState.push(instrObj)
       currentBuffer.push(formatInstruction(instrObj))
+      // execInstruction(instrObj, stores)
     })
     /** @note Thankfully, underlying store will still properly throw overflow error if newCurrent.length > 255 */
-    current(currentBuffer)
+    current.set(currentBuffer)
 
     // Only set new pastState if we're _NOT_ on the final iteration of our instruction set
     if (newInstructions.length - 1 !== i) pastState = [...pastState, currentState]
   })
-  past(pastState)
+  past.set(pastState)
 }

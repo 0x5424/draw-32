@@ -160,8 +160,8 @@ export const formatInstruction = (obj: InstructionObject): string => {
   const { name, arg } = obj
 
   if (name === 'commitStrokeMode') return commitStrokeMode(arg as StrokeMode)
-  if (name === 'commitInsertDraw') return commitInsertDraw(arg as InsertInstruction)
   if (name === 'commitPatternDraw') return commitPatternDraw(arg as PatternInstruction)
+  if (name === 'commitInsertDraw') return commitInsertDraw(arg as InsertInstruction)
   if (name === 'commitRotate') return commitRotate(arg as DirectionText)
   if (name === 'commitColor') return commitColor(arg as ColorIndex)
   if (name === 'commitFill') return commitFill()

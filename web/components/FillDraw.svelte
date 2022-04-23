@@ -11,7 +11,7 @@
   } from '../util/instruction'
   import {
     currentInstructionBuffer, cursor, prevCursor, currentSequenceInitialized, strokeMode,
-    visited, fillCells
+    visited, toVisit
   } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-fill-draw'
@@ -24,7 +24,7 @@
 
     $currentInstructionBuffer = [...$currentInstructionBuffer, performDraw(drawArgs)]
 
-    $visited = {...$visited, ...$fillCells}
+    $visited = {...$visited, ...$toVisit}
   }
   /* STORES (subscriptions) */
   $: fillText = `Fill at ${$cursor.join()}`

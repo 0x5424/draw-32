@@ -3,8 +3,8 @@
 
   /* PROPS */
   /* IMPORTS */
-  import { performReset, InstructionObject } from '../util/instruction'
-  import { formatInstruction } from '../util/parse'
+  import { performReset } from '../util/instruction'
+  import { formatInstruction, InstructionObject } from '../util/parse'
   /* IMPORTS (stores) */
   import {
     allSequences,
@@ -34,14 +34,14 @@
   // const undoSequence = () => {}
   const handleLoadOrReset = (newState: string[] | false = false): void => {
     const args = {
-      visitedStore: visited.set,
-      cursorXStore: cursorX.set,
-      cursorYStore: cursorY.set,
-      colorStore: color.set,
-      directionStore: direction.set,
-      prevCursorStore: prevCursor.set,
-      pastSequencesStore: pastSequences.set,
-      currentInstructionBufferStore: currentInstructionBuffer.set,
+      visitedStore: visited,
+      cursorXStore: cursorX,
+      cursorYStore: cursorY,
+      colorStore: color,
+      directionStore: direction,
+      prevCursorStore: prevCursor,
+      pastSequencesStore: pastSequences,
+      currentInstructionBufferStore: currentInstructionBuffer,
     }
 
     performReset(args, newState)
@@ -56,8 +56,8 @@
   const logState = () => console.log('INSTRUCTIONS:', $allSequences)
 
   /* STORES (subscriptions) */
-  $: value = `[\n  ${$allSequences.map(formatSequence).join(',\n  ')}\n]`
-  allSequences.subscribe((obj: InstructionObject[]) => {
+  $: value = `[\n${$allSequences.map(formatSequence).join(',\n')}\n]`
+  allSequences.subscribe((obj: InstructionObject[][]) => {
     /**
      * @note We update the local var, `toLoad` as otherwise we have no means to bind a value to the textarea
      * @note This is also the reason for a conditional textarea component when in edit mode

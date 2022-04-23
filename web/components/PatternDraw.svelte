@@ -47,7 +47,7 @@
     if (!$currentSequenceInitialized) $currentInstructionBuffer = [commitStrokeMode($strokeMode)]
 
     if ($direction !== $prevDirection) drawArgs.rotateInstruction = commitRotate($directionText)
-    if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor as [number, number])
+    if ($cursor.join() !== $prevCursor.join()) drawArgs.rotateInstruction = commitJump(...$cursor)
 
     $currentInstructionBuffer = [...$currentInstructionBuffer, performDraw(drawArgs)]
 
