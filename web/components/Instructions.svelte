@@ -31,7 +31,14 @@
     $pastSequences = [...$pastSequences, $currentSequence]
     $currentInstructionBuffer = []
   }
-  // const undoSequence = () => {}
+
+  /** Pop last instruction from `currentSequence` */
+  const undoLastInstruction = () => {
+    const lastInstructionRemoved = $currentInstructionBuffer.slice(0, $currentInstructionBuffer.length - 1).join('')
+    const newState = [...$pastSequences.map(obj => formatInstruction(obj).join('')), lastInstructionRemoved]
+
+    performReset(executableStores, newState)
+  }
   const handleLoadOrReset = (newState: string[] | false = false): void => {
     performReset(executableStores, newState)
     inEditMode = false
@@ -83,7 +90,7 @@
     <button on:click={toggleLoad}>Cancel</button>
   {:else}
     <button on:click={saveSequence}>Save</button>
-    <!-- <button on:click={undoSequence}>Undo</button> -->
+    <button on:click={undoLastInstruction}>Undo</button>
     <button on:click={resetSequences}>Reset</button>
     <button on:click={toggleLoad}>Load</button>
     <button on:click={logState}>Log</button>

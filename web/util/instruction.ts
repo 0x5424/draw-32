@@ -347,12 +347,12 @@ export const appendSequences = (stores: ExecutableStores, toAppend: InstructionO
   const currentInstructions = stores.currentInstructionBufferStore
   const buffer = getCurrentStoreValue<string[]>(currentInstructions)
 
-  console.log('Will append:', toAppend)
-  console.log('Instructions before:', buffer)
+  // console.log('Will append:', toAppend)
+  // console.log('Instructions before:', buffer)
   toAppend.forEach((obj) => {
     execInstruction(obj, stores)
     buffer.push(formatInstruction(obj)) // Re-formatting until @todo solved
   })
-  console.log('After:', buffer)
+  // console.log('After:', buffer)
   currentInstructions.set(buffer)
 }
