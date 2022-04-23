@@ -7,9 +7,9 @@
   import { formatInstruction, InstructionObject } from '../util/parse'
   /* IMPORTS (stores) */
   import {
-    allSequences,
-    pastSequences, currentSequence, currentInstructionBuffer,
-    visited, cursorX, cursorY, color, direction, prevCursor
+    executableStores,
+    pastSequences, allSequences, currentSequence,
+    currentInstructionBuffer
   } from '../stores'
   /* DECLARATIONS (local state) */
   let inEditMode = false
@@ -33,18 +33,7 @@
   }
   // const undoSequence = () => {}
   const handleLoadOrReset = (newState: string[] | false = false): void => {
-    const args = {
-      visitedStore: visited,
-      cursorXStore: cursorX,
-      cursorYStore: cursorY,
-      colorStore: color,
-      directionStore: direction,
-      prevCursorStore: prevCursor,
-      pastSequencesStore: pastSequences,
-      currentInstructionBufferStore: currentInstructionBuffer,
-    }
-
-    performReset(args, newState)
+    performReset(executableStores, newState)
     inEditMode = false
   }
 

@@ -206,21 +206,6 @@ export const performDraw = (instructions: PerformDrawArguments) => {
   return output.join('')
 }
 
-type PerformResetArguments = {
-  visitedStore: Writable<CanvasLike>
-  cursorXStore: Writable<number>
-  cursorYStore: Writable<number>
-  prevCursorStore: Writable<[number, number] | []>
-  colorStore: Writable<string>
-  directionStore: Writable<DirectionArrow>
-} & PerformLoadArguments
-
-interface PerformLoadArguments {
-  currentInstructionBufferStore: Writable<string[]>
-  pastSequencesStore: Writable<InstructionObject[][]>
-}
-
-
 /** Helper fn to retrieve current store value, then immediately unsubscribe (lambda) */
 const getCurrentStoreValue = <T>(store: Readable<T>): T => {
   let value: T
@@ -231,6 +216,124 @@ const getCurrentStoreValue = <T>(store: Readable<T>): T => {
   return value
 }
 
+// Requires all stores that are referenced as args, and a few webapp-specific stores for paint
+type ExecInstructionArguments = {
+  /* Stores used to initialize canvas */
+  currentInstructionBufferStore: Writable<string[]>
+  pastSequencesStore: Writable<InstructionObject[][]>
+  /* Main stores to modify canvas, used by all */
+  cwStore: Writable<boolean>
+  visitedStore: Writable<CanvasLike>
+  drawModeStore: Writable<DrawMode>
+  toVisitStore: Readable<CanvasLike>
+  /* STROKE */
+  strokeModeStore: Writable<StrokeMode>
+  /* PATTERN */
+  patternOneLengthStore: Writable<PatternOffset>
+  patternTwoOffsetStore: Writable<PatternOffset>
+  rawPatternStore: Writable<string>
+  patternCoordinatesStore: Readable<PatternCoordinatesResult>
+  /* INSERT */
+  insertLengthStore: Writable<number>
+  insertCoordinatesStore: Readable<InsertCoordinatesResult>
+  /* DIRECTION */
+  directionStore: Writable<DirectionArrow>
+  prevDirectionStore: Writable<DirectionArrow>
+  /* COLOR */
+  colorStore: Writable<string>
+  /* FILL */
+  /* JUMP */
+  cursorXStore: Writable<number>
+  cursorYStore: Writable<number>
+  prevCursorStore: Writable<CoordinatesTuple | []>
+}
+/**
+ * Execute the specified instruction, modifying canvas state; Does not modify instruction state
+ *
+ * @see {@link performLoad | Function to modify instruction state}
+ */
+const execInstruction = (instruction: InstructionObject, stores: ExecInstructionArguments) => {
+  const { name, arg } = instruction
+
+  if (name === 'commitStrokeMode') return stores.strokeModeStore.set(arg as StrokeMode)
+  if (name === 'commitColor') return stores.colorStore.set(PALETTE[arg as ColorIndex])
+  if (name === 'commitRotate') {
+    const { directionStore, prevDirectionStore } = stores
+    /** @todo Make directionArrow a derived store, directionText writable */
+    const direction = (<const>{
+      UP: '↑', RIGHT: '→', DOWN: '↓', LEFT: '←'
+    })[arg as DirectionText]
+
+    directionStore.set(direction)
+    return prevDirectionStore.set(direction)
+  }
+  // All instructions beyond this point use cursorStore
+  const { cursorXStore, cursorYStore, prevCursorStore } = stores
+
+  if (name === 'commitJump') {
+    const [x, y] = arg as CoordinatesTuple
+
+    cursorXStore.set(x)
+    cursorYStore.set(y)
+    return prevCursorStore.set([x, y])
+  }
+
+  // Otherwise, we're performing a draw routine & we can DRY the logic to create toVisit
+  const { drawModeStore } = stores
+  const currentVisited = getCurrentStoreValue<CanvasLike>(stores.visitedStore)
+  let newCursor: CoordinatesTuple = [
+    getCurrentStoreValue<number>(cursorXStore),
+    getCurrentStoreValue<number>(cursorYStore)
+  ]
+
+  if (name === 'commitFill') drawModeStore.set('fill')
+  if (name === 'commitPatternDraw' || name === 'commitInsertDraw') {
+    const { cw } = <InsertInstruction | PatternInstruction>arg
+    stores.cwStore.set(cw)
+  }
+
+  if (name === 'commitInsertDraw') {
+    const { length } = <InsertInstruction>arg
+
+    drawModeStore.set('insert')
+    stores.insertLengthStore.set(length)
+
+    /**
+     * @note Typecheck is to silence tsc, as empty array will never appear
+     * @todo Ensure insertDraw[1] always returns next cursor (assume length always >= 1)
+     */
+    const possibleCursor = getCurrentStoreValue<[any, CoordinatesTuple | []]>(stores.insertCoordinatesStore)[1]
+    if (possibleCursor.length === 0) throw new Error('Empty tuple received from InsertInstruction')
+
+    newCursor = [...possibleCursor]
+  }
+  if (name === 'commitPatternDraw') {
+    const { p1Length, p2Offset, pattern } = <PatternInstruction>arg
+
+    drawModeStore.set('pattern')
+    stores.patternOneLengthStore.set(p1Length)
+    stores.patternTwoOffsetStore.set(p2Offset)
+    stores.rawPatternStore.set(pattern)
+
+    /** @note See above typecheck comment in commitInsertDraw */
+    const possibleCursor = getCurrentStoreValue<[any, any, CoordinatesTuple | []]>(stores.patternCoordinatesStore)[2]
+    if (possibleCursor.length === 0) throw new Error('Empty tuple received from PatternInstruction')
+
+    newCursor = [...possibleCursor]
+  }
+
+  // Set visited
+  const toVisit = getCurrentStoreValue<CanvasLike>(stores.toVisitStore)
+  stores.visitedStore.set({...currentVisited, ...toVisit})
+
+  // Lastly, update the cursor position (is redundant for commitFill)
+  if (name === 'commitFill') return
+
+  cursorXStore.set(newCursor[0])
+  cursorYStore.set(newCursor[1])
+  prevCursorStore.set(newCursor)
+}
+
 /**
  * Reset the webapp state, and provide an optional new set of instructions to reload in it's place
  *
@@ -238,7 +341,7 @@ const getCurrentStoreValue = <T>(store: Readable<T>): T => {
  *
  * @todo Persist `allSequences` store as InstructionObject[][], thus removing need to re-convert back to raw bitstream
  */
-export const performReset = (stores: PerformResetArguments, newState: string[] | false = false): void => {
+export const performReset = (stores: ExecInstructionArguments, newState: string[] | false = false): void => {
   // 1. Parse instructions first, as to not reset app state before validating
   const allInstructions: InstructionObject[][] = []
   if (newState) newState.forEach(str => allInstructions.push(parseInstructionStream(str)))
@@ -255,14 +358,14 @@ export const performReset = (stores: PerformResetArguments, newState: string[] |
   if (allInstructions.length > 0) {
     const { currentInstructionBufferStore, pastSequencesStore } = stores
 
-    performLoad({ currentInstructionBufferStore, pastSequencesStore }, allInstructions, [], [])
+    performLoad(stores, allInstructions, [], [])
   }
 }
 
 /**
  * The easiest way to ensure instruction parity is to sequentially re-parse everything from 0
  */
-export const performLoad = (stores: PerformLoadArguments, newInstructions: InstructionObject[][], currentBuffer: string[], pastState: InstructionObject[][]): void => {
+export const performLoad = (stores: ExecInstructionArguments, newInstructions: InstructionObject[][], currentBuffer: string[], pastState: InstructionObject[][]): void => {
   // Init stores
   const {currentInstructionBufferStore: current, pastSequencesStore: past} = stores
 
@@ -273,8 +376,8 @@ export const performLoad = (stores: PerformLoadArguments, newInstructions: Instr
 
     sequence.forEach(instrObj => {
       currentState.push(instrObj)
+      execInstruction(instrObj, stores)
       currentBuffer.push(formatInstruction(instrObj))
-      // execInstruction(instrObj, stores)
     })
     /** @note Thankfully, underlying store will still properly throw overflow error if newCurrent.length > 255 */
     current.set(currentBuffer)
