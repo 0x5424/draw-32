@@ -1,12 +1,25 @@
 /** @todo Consider TS template literal for return types here */
 
-import { encodeRle } from './encode'
-import { InstructionObject, parseInstructionStream, formatInstruction } from './parse'
-import {
-  DirectionText, DirectionArrow, CanvasLike, ExecutableStores,
-  getCurrentStoreValue
-} from '../stores'
-import { PALETTE } from './palette'
+import { encodeRle, decodeRleAsTuple } from './encode'
+
+export type DirectionText = 'LEFT' | 'DOWN' | 'RIGHT' | 'UP'
+
+export type InstructionName =
+  'commitInsertDraw' |
+  'commitPatternDraw' |
+  'commitRotate' |
+  'commitColor' |
+  'commitFill' |
+  'commitJump' |
+  'commitStrokeMode';
+
+export type InstructionArg = PatternInstruction | InsertInstruction | DirectionText | CoordinatesTuple | StrokeMode | ColorIndex
+
+/** @todo R&D some magic with `infer` to make `arg` safer */
+export interface InstructionObject {
+  name: InstructionName,
+  arg: InstructionArg | null
+}
 
 export interface PatternInstruction {
   cw: boolean;
@@ -159,6 +172,8 @@ export const commitColor = (colorIndex: ColorIndex) => {
  */
 export const commitFill = () => '1110'
 
+export type CoordinatesTuple = readonly [x: number, y: number]
+
 /**
  * Raw format: (1, 111, N, N)
  *
@@ -167,7 +182,6 @@ export const commitFill = () => '1110'
  * - `N` = Variable; RLE encoded X coordinate
  * - `N` = Variable; RLE encoded Y coordinate
  */
-export type CoordinatesTuple = [x: number, y: number]
 export const commitJump: (...args: CoordinatesTuple) => string = (x, y) => {
   const xy = [x, y].map(encodeRle).join('')
 
@@ -204,155 +218,143 @@ export const performDraw = (instructions: PerformDrawArguments) => {
   return output.join('')
 }
 
+const throwInvalidBitstreamError = (stream: string, pc: number, toRead = 1): never => {
+  const rangeMessage = toRead > 1 ? `between ${pc}-${pc + toRead} are` : `at index ${pc} is`
+  const values = stream.slice(pc, pc + toRead)
+
+  throw new Error(`bitstream values ${rangeMessage} invalid; (Got ${values}, expected 0 | 1)`)
+}
+
 /**
- * Execute the specified instruction, modifying canvas state; Does not modify instruction state
- *
- * @see {@link performLoad | Function to modify instruction state}
+ * Given a raw bitstream `[0-1]*` and program counter, parse the instruction at the given index
  */
-const execInstruction = (instruction: InstructionObject, stores: ExecutableStores) => {
-  const { name, arg } = instruction
+type ParseInstructionArgs = [stream: string, pc?: number]
+export const discernInstructionName: (...a: ParseInstructionArgs) => [name: InstructionName, bitsRead: number] = (stream, pc) => {
+  if (stream[pc] === '0') { // draw mode
+    // pc + 1 is rotation
+    if (stream[pc + 2] === '0') return ['commitPatternDraw', 3]
+    if (stream[pc + 2] === '1') return ['commitInsertDraw', 3]
+    throwInvalidBitstreamError(stream, pc + 2)
+  } else if (stream[pc] === '1') { // interrupt
+    const offset = pc + 1
 
-  if (name === 'commitStrokeMode') return stores.strokeModeStore.set(arg as StrokeMode)
-  if (name === 'commitColor') return stores.colorStore.set(PALETTE[arg as ColorIndex])
+    if (stream[offset] === '0') return ['commitRotate', 2]
+    if (stream.slice(offset, offset + 2) === '10') return ['commitColor', 3]
+    if (stream.slice(offset, offset + 3) === '110') return ['commitFill', 4]
+    if (stream.slice(offset, offset + 3) === '111') return ['commitJump', 4]
+    throwInvalidBitstreamError(stream, offset, 3)
+  }
+
+  throwInvalidBitstreamError(stream, pc)
+}
+
+const binToInt = (stream: string, offset: number, numBits: number) => parseInt(stream.slice(offset, offset + numBits), 2)
+
+const discernArg: (...a: [InstructionName, ...ParseInstructionArgs]) => [arg: InstructionArg | null, bitsRead: number] = (name, stream, pc) => {
+  if (name === 'commitFill') return [null, 0] // 1110() ; None read after initial discriminator
+  if (name === 'commitColor') return [binToInt(stream, pc, 4) as ColorIndex, 4]
   if (name === 'commitRotate') {
-    const { directionStore, prevDirectionStore } = stores
-    /** @todo Make directionArrow a derived store, directionText writable */
-    const direction = (<const>{
-      UP: '↑', RIGHT: '→', DOWN: '↓', LEFT: '←'
-    })[arg as DirectionText]
+    const table: Record<string, DirectionText> = {
+      '00': 'UP',
+      '01': 'RIGHT',
+      '10': 'DOWN',
+      '11': 'LEFT'
+    }
+    const dir = table[stream.slice(pc, pc + 2)]
 
-    directionStore.set(direction)
-    return prevDirectionStore.set(direction)
+    if (!dir) throwInvalidBitstreamError(stream, pc, 2)
+
+    return [dir, 2]
   }
-  // All instructions beyond this point use cursorStore
-  const { cursorXStore, cursorYStore, prevCursorStore } = stores
-
   if (name === 'commitJump') {
-    const [x, y] = arg as CoordinatesTuple
+    const [x, xRead] = decodeRleAsTuple(stream, pc)
+    const [y, yRead] = decodeRleAsTuple(stream, pc + xRead)
 
-    cursorXStore.set(x)
-    cursorYStore.set(y)
-    return prevCursorStore.set([x, y])
+    return [[x, y], xRead + yRead]
   }
-
-  // Otherwise, we're performing a draw routine & we can DRY the logic to create toVisit
-  const { drawModeStore } = stores
-  const currentVisited = getCurrentStoreValue<CanvasLike>(stores.visitedStore)
-  let newCursor: CoordinatesTuple = [
-    getCurrentStoreValue<number>(cursorXStore),
-    getCurrentStoreValue<number>(cursorYStore)
-  ]
-
-  if (name === 'commitFill') drawModeStore.set('fill')
-  if (name === 'commitPatternDraw' || name === 'commitInsertDraw') {
-    const { cw } = <InsertInstruction | PatternInstruction>arg
-    stores.cwStore.set(cw)
-  }
-
   if (name === 'commitInsertDraw') {
-    const { length } = <InsertInstruction>arg
+    const cw = stream[pc - 2] === '0' ? true : false
+    const [length, bitsRead] = decodeRleAsTuple(stream, pc)
 
-    drawModeStore.set('insert')
-    stores.insertLengthStore.set(length)
-
-    /**
-     * @note Typecheck is to silence tsc, as empty array will never appear
-     * @todo Ensure insertDraw[1] always returns next cursor (assume length always >= 1)
-     */
-    const possibleCursor = getCurrentStoreValue<[unknown, CoordinatesTuple | []]>(stores.insertCoordinatesStore)[1]
-    if (possibleCursor.length === 0) throw new Error('Empty tuple received from InsertInstruction')
-
-    newCursor = [...possibleCursor]
+    return [{cw, length}, bitsRead]
   }
   if (name === 'commitPatternDraw') {
-    const { p1Length, p2Offset, pattern } = <PatternInstruction>arg
+    const cw = stream[pc - 2] === '0' ? true : false
+    let offset = pc + 0
+    const p1Length = binToInt(stream, offset, 2) + 0b1 as PatternOffset
+    offset += 2
+    const p2Offset = binToInt(stream, offset, 2) + 0b1 as PatternOffset
+    offset += 2
+    const [patternLength, patternBitsRead] = decodeRleAsTuple(stream, offset)
+    offset += patternBitsRead
+    const pattern = stream.slice(offset, offset + patternLength)
 
-    drawModeStore.set('pattern')
-    stores.patternOneLengthStore.set(p1Length)
-    stores.patternTwoOffsetStore.set(p2Offset)
-    stores.rawPatternStore.set(pattern)
+    const bitsRead = (offset + patternLength) - pc
 
-    /** @note See above typecheck comment in commitInsertDraw */
-    const possibleCursor = getCurrentStoreValue<[unknown, unknown, CoordinatesTuple | []]>(stores.patternCoordinatesStore)[2]
-    if (possibleCursor.length === 0) throw new Error('Empty tuple received from PatternInstruction')
-
-    newCursor = [...possibleCursor]
+    return [{cw, p1Length, p2Offset, pattern}, bitsRead]
   }
 
-  // Set visited
-  const toVisit = getCurrentStoreValue<CanvasLike>(stores.toVisitStore)
-  stores.visitedStore.set({...currentVisited, ...toVisit})
+  throw new Error(`Invalid name provided (Got ${name})`) // Shouldn't happen if ts compiled 🤨
+}
 
-  // Lastly, update the cursor position & rotation (is redundant for commitFill)
-  if (name === 'commitFill') return
-  const { directionStore, prevDirectionStore } = stores
-  const direction = getCurrentStoreValue<DirectionArrow>(directionStore)
+export const parseInstruction: (...a: ParseInstructionArgs) => [InstructionObject, number] = (stream, pc = 0) => {
+  // Only exception to parsing: pc===0 will only be `commitStrokeMode`
+  if (pc === 0) return [{name: 'commitStrokeMode', arg: parseInt(stream[1], 2) as 0 | 1}, 2]
 
-  cursorXStore.set(newCursor[0])
-  cursorYStore.set(newCursor[1])
-  prevCursorStore.set(newCursor) // Location of last write
-  prevDirectionStore.set(direction) // Location of last write
-  if (name === 'commitInsertDraw') stores.insertLengthStore.set(1) // Reinitialize
-  if (name === 'commitPatternDraw') stores.rawPatternStore.set('') // Reinitialize
+  // Else, parsing logic works as expected
+  const [name, instructionBitsRead] = discernInstructionName(stream, pc)
+  pc += instructionBitsRead
+  const [arg, argBitsRead] = discernArg(name, stream, pc)
+
+  return [{name, arg}, instructionBitsRead + argBitsRead]
 }
 
 /**
- * Reset the webapp state, and provide an optional new set of instructions to reload in it's place
- *
- * @todo Combine this with hard-coded constants
- *
- * @todo Persist `allSequences` store as InstructionObject[][], thus removing need to re-convert back to raw bitstream
+ * Normalize a hex string (with or without a prefixed `0x`) to a string comprised of binary digits
  */
-export const performReset = (stores: ExecutableStores, newState: string[] | false = false): void => {
-  // 1. Parse instructions first, as to not reset app state before validating
-  const allInstructions: InstructionObject[][] = []
-  if (newState) newState.forEach(str => allInstructions.push(parseInstructionStream(str)))
+const hexStringToBinString = (str: string) => {
+  if (!str.startsWith('0x')) str = `0x${str}`
 
-  stores.visitedStore.set({})
-  stores.cursorXStore.set(1)
-  stores.cursorYStore.set(1)
-  stores.colorStore.set('000000')
-  stores.directionStore.set('→')
-  stores.prevCursorStore.set([])
-  stores.pastSequencesStore.set([])
-  stores.currentInstructionBufferStore.set([])
+  return BigInt(str).toString(2)
+}
 
-  if (allInstructions.length > 0) performLoad(stores, allInstructions)
+/** Take raw instruction arg (in bin or hex format) and convert to InstructionObject ary */
+export const parseInstructionStream = (instructions: string): InstructionObject[] => {
+  if (!/^[0-1]{2,255}$/.test(instructions)) {
+    if (!/^(0x)?([0-9]|[a-f]){2,64}$/.test(instructions)) throw new Error(`Invalid instructions: ${instructions}`)
+
+    instructions = hexStringToBinString(instructions)
+  }
+
+  let pc = 0
+  const out = []
+
+  // Iterate while we have a value at the program counter index
+  for (; instructions[pc];) {
+    const [instr, bitsRead] = parseInstruction(instructions, pc)
+    pc += bitsRead
+
+    out.push(instr)
+  }
+
+  return out
 }
 
 /**
- * The easiest way to ensure instruction parity is to sequentially re-parse everything from 0
- */
-export const performLoad = (stores: ExecutableStores, toLoad: InstructionObject[][]): void => {
-  // Init stores
-  const { pastSequencesStore: past } = stores
-  let pastState = getCurrentStoreValue<InstructionObject[][]>(past)
-
-  // We must prepare new values for current/past _before_ calling the setter function, as we have no way to expand the Readable value from the store
-  toLoad.forEach((sequence: InstructionObject[], i) => {
-    appendSequences(stores, sequence)
-
-    // Only set new pastState if we're _NOT_ on the final iteration of our instruction set
-    if (toLoad.length - 1 !== i) pastState = [...pastState, sequence]
-  })
-  past.set(pastState)
-}
-
-/**
- * Append to `currentSequence` and `currentInstructionBuffer`
+ * @todo Remove when `allSequences` store is InstructionObject[][]
  *
- * @todo Clean this up; At present we cannot write to currentBuffer with instructions, we still use raw strings
+ * @todo Safer typecasts, see InstructionObject
+ *
+ * @see {@link InstructionObject}
  */
-export const appendSequences = (stores: ExecutableStores, toAppend: InstructionObject[]): void => {
-  const currentInstructions = stores.currentInstructionBufferStore
-  const buffer = getCurrentStoreValue<string[]>(currentInstructions)
+export const formatInstruction = (obj: InstructionObject): string => {
+  const { name, arg } = obj
 
-  // console.log('Will append:', toAppend)
-  // console.log('Instructions before:', buffer)
-  toAppend.forEach((obj) => {
-    execInstruction(obj, stores)
-    buffer.push(formatInstruction(obj)) // Re-formatting until @todo solved
-  })
-  // console.log('After:', buffer)
-  currentInstructions.set(buffer)
+  if (name === 'commitStrokeMode') return commitStrokeMode(arg as StrokeMode)
+  if (name === 'commitPatternDraw') return commitPatternDraw(arg as PatternInstruction)
+  if (name === 'commitInsertDraw') return commitInsertDraw(arg as InsertInstruction)
+  if (name === 'commitRotate') return commitRotate(arg as DirectionText)
+  if (name === 'commitColor') return commitColor(arg as ColorIndex)
+  if (name === 'commitFill') return commitFill()
+  if (name === 'commitJump') return commitJump(...arg as CoordinatesTuple)
 }

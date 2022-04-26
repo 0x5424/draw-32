@@ -46,3 +46,28 @@ Then, for code contributions:
 2. Branch off `source`
 3. Ensure CI is successful after the inclusion of your changes
 4. Create a pull request
+
+Loose list of todos, written before the issue tracker was initialized:
+- [ ] (spec) Custom palette settings
+- [ ] (spec) Update implementation for `drawMode 1`; Fill 5 pixels (cursor+LDRU) `if cell.color != $color` (ie. Fill logic, but not recursive)
+- [ ] (spec) Global constants for all constructor-related variables (ie. cursor, rotation)
+- [ ] (bug) Attempting to fully undo an instruction sequence fails to remove the strokeMode header
+- [ ] (bug) Clearing the `insert` drawMode field will break all stores
+- [ ] (DX) Clean up type defns
+- [ ] (DX) Split up `stores.ts`
+- [ ] (DX) CI
+- [ ] (DX) Rename matrix -> guide/template (or similar)
+- [ ] (DX) New derived string stores for instruction sequences (currentSequence & pastSequences represented as `string[]`, `string[][]`)
+- [ ] (DX) Refactor a few derived stores to be writable & vise-versa (directionText, cursor)
+- [ ] (UX) Support larger canvas (~128x128)
+- [ ] (UX) Ability to swap z-index for template/visited, ability to toggle template visibility
+- [ ] (UX) Load custom templates
+- [ ] (UX) Export current canvas (to later be loaded as a template)
+- [ ] (UX) Store should be added for `prevColor`, allowing easier switching between colors (in case one forgets to call `commitColor`)
+- [ ] (UX) Smaller control panel w/ icons
+- [ ] (UX) Move instruction buffer preview to separate modal
+- [ ] (UX) "Ink level" for current instruction remaining bits
+- [ ] (UX) Persisted settings/canvas in localStorage
+- [ ] (UX) Dark mode
+
+If you are a designer who wishes to contribute an iteration which is more user/mobile-friendly, feel free to reach out directly.

@@ -2,12 +2,11 @@
   /* IMPORTS */
   import Form from './Form.svelte'
   import Input from './Input.svelte'
-  import { appendSequences, ColorIndex } from '../util/instruction'
+  import type { ColorIndex, InstructionObject } from '../util/instruction'
   import { PALETTE } from '../util/palette'
-  import type { InstructionObject } from '../util/parse'
   /* PROPS */
   /* IMPORTS (stores) */
-  import { color, currentSequenceInitialized, strokeMode, executableStores } from '../stores'
+  import { color, currentSequenceInitialized, strokeMode, executableStores, appendSequences } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-color'
 

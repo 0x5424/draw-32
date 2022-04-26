@@ -6,14 +6,13 @@
   import Form from './Form.svelte'
   import Input from './Input.svelte'
 
-  import { appendSequences, InsertInstruction } from '../util/instruction'
-  import type { InstructionObject } from '../util/parse'
+  import type { InsertInstruction, InstructionObject } from '../util/instruction'
 
   /* IMPORTS (stores) */
   import {
     cw, insertLength, direction, directionText, prevDirection,
     cursor, prevCursor, currentSequenceInitialized, strokeMode,
-    executableStores
+    executableStores, appendSequences
   } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-insert-draw'

@@ -6,13 +6,12 @@
   import Form from './Form.svelte'
   import Input from './Input.svelte'
 
-  import { appendSequences, PatternInstruction } from '../util/instruction'
-  import type { InstructionObject } from '../util/parse'
+  import type { InstructionObject, PatternInstruction } from '../util/instruction'
   /* IMPORTS (stores) */
   import {
     cw, patternOneLength, patternTwoOffset, patternTwoLength, rawPattern, direction, directionText, prevDirection,
     cursor, prevCursor, currentSequenceInitialized, strokeMode,
-    executableStores
+    executableStores, appendSequences
   } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-pattern-draw'

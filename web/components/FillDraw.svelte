@@ -4,12 +4,11 @@
   /* PROPS */
   /* IMPORTS */
   import Form from './Form.svelte'
-  import { appendSequences } from '../util/instruction'
-  import type { InstructionObject } from '../util/parse'
+  import type { InstructionObject } from '../util/instruction'
   /* IMPORTS (stores) */
   import {
     cursor, prevCursor, currentSequenceInitialized, strokeMode,
-    executableStores
+    executableStores, appendSequences
   } from '../stores'
   /* DECLARATIONS (local state) */
   const formId = 'form-fill-draw'

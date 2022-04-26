@@ -3,13 +3,12 @@
 
   /* PROPS */
   /* IMPORTS */
-  import { performReset } from '../util/instruction'
-  import { formatInstruction, InstructionObject } from '../util/parse'
+  import { formatInstruction, InstructionObject } from '../util/instruction'
   /* IMPORTS (stores) */
   import {
     executableStores,
     pastSequences, allSequences, currentSequence,
-    currentInstructionBuffer
+    currentInstructionBuffer, performReset
   } from '../stores'
   /* DECLARATIONS (local state) */
   let inEditMode = false
@@ -35,7 +34,7 @@
   /** Pop last instruction from `currentSequence` */
   const undoLastInstruction = () => {
     const lastInstructionRemoved = $currentInstructionBuffer.slice(0, $currentInstructionBuffer.length - 1).join('')
-    const newState = [...$pastSequences.map(obj => formatInstruction(obj).join('')), lastInstructionRemoved]
+    const newState = [...$pastSequences.map(ary => ary.map(obj =>formatInstruction(obj)).join('')), lastInstructionRemoved]
 
     performReset(executableStores, newState)
   }

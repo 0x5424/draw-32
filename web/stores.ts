@@ -1,16 +1,20 @@
 /** @todo Clean-up, split stores into stores/*.ts and stores/index.ts */
 import { writable, derived, Writable, Readable } from 'svelte/store'
+import { PALETTE } from './util/palette'
 
-import type { PatternOffset, StrokeMode, CoordinatesTuple } from './util/instruction'
+import {
+  PatternOffset, StrokeMode, CoordinatesTuple, InstructionObject, DirectionText, ColorIndex,
+  PatternInstruction, InsertInstruction,
+  parseInstructionStream, formatInstruction
+} from './util/instruction'
 import type { MatrixCell } from './util/matrix'
 
 import {
   INCREMENTS,
   getNextCoordinatesFromDirection,
-  getSurroundingCoordinates
+  getSurroundingCoordinates,
+  getStrokeCells
 } from './util/coordinates'
-
-import { InstructionObject, parseInstructionStream } from './util/parse'
 
 /** Helper fn to retrieve current store value, then immediately unsubscribe (lambda) */
 export const getCurrentStoreValue = <T>(store: Readable<T>): T => {
@@ -22,64 +26,12 @@ export const getCurrentStoreValue = <T>(store: Readable<T>): T => {
   return value
 }
 
-interface GetStrokeCellsParameters {
-  mode: StrokeMode;
-  x: number;
-  y: number;
-  dir: DirectionText;
-  visited: CanvasLike;
-  color: string;
-}
-
-/**
- * Local utility function to evaluate which cells should be filled surrounding a pair of coords
- */
-const getStrokeCells = (args: GetStrokeCellsParameters): CoordinatesTuple[] => {
-  const {
-    mode,
-    x: inputX,
-    y: inputY,
-    dir,
-    visited,
-    color,
-  } = args
-  const baseCell = [inputX, inputY] as CoordinatesTuple
-
-  if (mode === 0) return [baseCell]
-
-  // Depending on rotation & already filled in squares, we will use only 2 surrounding coordinates
-  let inserted = 0
-  const orderedCoordinates = Object.entries(getSurroundingCoordinates(inputX, inputY)).sort((a, b) => {
-    const table = {
-      LEFT: ['UP', 'DOWN', 'RIGHT', 'LEFT'],
-      RIGHT: ['UP', 'DOWN', 'LEFT','RIGHT'],
-      UP: ['LEFT', 'RIGHT', 'DOWN', 'UP'],
-      DOWN: ['LEFT', 'RIGHT', 'UP', 'DOWN'],
-    }[dir]
-
-    return table.indexOf(a[0]) - table.indexOf(b[0])
-  })
-
-  const extraCells = orderedCoordinates.map(([, coords]) => {
-    if (inserted >= 2) return
-
-    const [x, y] = coords
-    if (visited[`${x}:${y}`] === color) return // Skip if we've already filled it with same color
-
-    inserted++
-    return [x, y]
-  }).filter(Boolean) as CoordinatesTuple[]
-
-  return [baseCell, ...extraCells]
-}
-
 interface Coordinates {
   x: number;
   y: number;
 }
 
 export type DirectionArrow = '←' | '↓' | '→' | '↑'
-export type DirectionText = 'LEFT' | 'DOWN' | 'RIGHT' | 'UP'
 type RotationArrow ='↙' | '↘' | '↗' | '↖'
 export type RotationText ='UP_LEFT' | 'UP_RIGHT' | 'DOWN_LEFT' | 'DOWN_RIGHT'
 
@@ -121,11 +73,11 @@ export const rotationText = derived<Readable<RotationArrow>, RotationText>(rotat
   throw new Error('invalid rotation set')
 })
 
-export const directionIncrements = derived<Readable<DirectionText>, [number, number]>(directionText, $directionText => {
+export const directionIncrements = derived<Readable<DirectionText>, CoordinatesTuple>(directionText, $directionText => {
   return INCREMENTS[$directionText]
 })
 
-export const rotationIncrements = derived<Readable<RotationText>, [number, number]>(rotationText, $rotationText => {
+export const rotationIncrements = derived<Readable<RotationText>, CoordinatesTuple>(rotationText, $rotationText => {
   return INCREMENTS[$rotationText]
 })
 
@@ -227,8 +179,8 @@ const fillCells = derived<FillCellsStore, CanvasLike>([cursor, matrix, color, ca
   const currentY = $cursor[1] - 1
 
   // Initialize the cells to check
-  const initialCoordinates = [[currentX, currentY]] as [number, number][]
-  const recurse = (stack: [number, number][]) => {
+  const initialCoordinates = [[currentX, currentY]] as CoordinatesTuple[]
+  const recurse = (stack: CoordinatesTuple[]) => {
     if (stack.length === 0) return
     const [x, y] = stack.pop()
 
@@ -256,7 +208,7 @@ type PatternCoordinatesStore = [
   Readable<CoordinatesTuple>, // Cursor
   Readable<DirectionText>,
   Readable<RotationText>,
-  Readable<[number, number]>, // Increments
+  Readable<CoordinatesTuple>, // Increments
   Readable<PatternOffset>, // P1
   Readable<PatternTwoLength>, // P2
   Readable<string> // Raw pattern
@@ -280,7 +232,7 @@ export const patternCoordinates = derived<PatternCoordinatesStore, PatternCoordi
 
       for (let i = 0; i < currentLength; ++i) {
         lastCoords = getNextCoordinatesFromDirection($directionText, pseudoX, pseudoY)
-        out[bit].push([lastCoords.x, lastCoords.y] as [number, number])
+        out[bit].push([lastCoords.x, lastCoords.y] as CoordinatesTuple)
 
         // For final iteration, skip cursor update (will be updated separately next)
         if (i !== currentLength - 1) {
@@ -298,7 +250,7 @@ export const patternCoordinates = derived<PatternCoordinatesStore, PatternCoordi
     // Save next cursor coordinates; NOTE: Must re-decrement due to initial shift
     pseudoX += incX
     pseudoY += incY
-    out[2] = [pseudoX, pseudoY] as [number, number]
+    out[2] = [pseudoX, pseudoY] as CoordinatesTuple
 
     return out
   })
@@ -323,16 +275,16 @@ export const insertCoordinates = derived<InsertCoordinatesStore, InsertCoordinat
     for (let i = 0; i < $insertLength; ++i) {
       const lastCoords = getNextCoordinatesFromDirection($directionText, nextX, nextY)
 
-      out[0].push([nextX, nextY] as [number, number])
+      out[0].push([nextX, nextY] as CoordinatesTuple)
 
       nextX = lastCoords.x
       nextY = lastCoords.y
     }
 
     // NOTE: Final cursor needs final shift +-1 based on _last_ element
-    const nextCursor = getNextCoordinatesFromDirection($rotationText, ...out[0][out[0].length - 1] as [number, number])
+    const nextCursor = getNextCoordinatesFromDirection($rotationText, ...out[0][out[0].length - 1] as CoordinatesTuple)
 
-    out[1] = [nextCursor.x, nextCursor.y] as [number, number]
+    out[1] = [nextCursor.x, nextCursor.y] as CoordinatesTuple
 
     return out
   })
@@ -453,10 +405,11 @@ export type ExecutableStores = {
   prevCursorStore: Writable<CoordinatesTuple | []>
 }
 
+
 /**
  * Helper object for grabbing all stores needed to replay instructions
  *
- * @see {@link instruction.ts#execInstruction}
+ * @see {@link #execInstruction}
  */
 export const executableStores: ExecutableStores = {
   cwStore: cw,
@@ -479,3 +432,160 @@ export const executableStores: ExecutableStores = {
   currentInstructionBufferStore: currentInstructionBuffer,
   pastSequencesStore: pastSequences,
 } as const
+
+/* Helpers for webapp state */
+
+/**
+ * Reset the webapp state, and provide an optional new set of instructions to reload in it's place
+ *
+ * @todo Combine this with hard-coded constants
+ *
+ * @todo Persist `allSequences` store as InstructionObject[][], thus removing need to re-convert back to raw bitstream
+ */
+export const performReset = (stores: ExecutableStores, newState: string[] | false = false): void => {
+  // 1. Parse instructions first, as to not reset app state before validating
+  const allInstructions: InstructionObject[][] = []
+  if (newState) newState.forEach(str => allInstructions.push(parseInstructionStream(str)))
+
+  stores.visitedStore.set({})
+  stores.cursorXStore.set(1)
+  stores.cursorYStore.set(1)
+  stores.colorStore.set('000000')
+  stores.directionStore.set('→')
+  stores.prevCursorStore.set([])
+  stores.pastSequencesStore.set([])
+  stores.currentInstructionBufferStore.set([])
+
+  if (allInstructions.length > 0) performLoad(stores, allInstructions)
+}
+
+/**
+ * The easiest way to ensure instruction parity is to sequentially re-parse everything from 0
+ */
+export const performLoad = (stores: ExecutableStores, toLoad: InstructionObject[][]): void => {
+  // Init stores
+  const { pastSequencesStore: past } = stores
+  let pastState = getCurrentStoreValue<InstructionObject[][]>(past)
+
+  // We must prepare new values for current/past _before_ calling the setter function, as we have no way to expand the Readable value from the store
+  toLoad.forEach((sequence: InstructionObject[], i) => {
+    appendSequences(stores, sequence)
+
+    // Only set new pastState if we're _NOT_ on the final iteration of our instruction set
+    if (toLoad.length - 1 !== i) pastState = [...pastState, sequence]
+  })
+  past.set(pastState)
+}
+
+/**
+ * Execute the specified instruction, modifying canvas state; Does not modify instruction state
+ *
+ * @see {@link performLoad | Function to modify instruction state}
+ */
+const execInstruction = (instruction: InstructionObject, stores: ExecutableStores) => {
+  const { name, arg } = instruction
+
+  if (name === 'commitStrokeMode') return stores.strokeModeStore.set(arg as StrokeMode)
+  if (name === 'commitColor') return stores.colorStore.set(PALETTE[arg as ColorIndex])
+  if (name === 'commitRotate') {
+    const { directionStore, prevDirectionStore } = stores
+    /** @todo Make directionArrow a derived store, directionText writable */
+    const direction = (<const>{
+      UP: '↑', RIGHT: '→', DOWN: '↓', LEFT: '←'
+    })[arg as DirectionText]
+
+    directionStore.set(direction)
+    return prevDirectionStore.set(direction)
+  }
+  // All instructions beyond this point use cursorStore
+  const { cursorXStore, cursorYStore, prevCursorStore } = stores
+
+  if (name === 'commitJump') {
+    const [x, y] = arg as CoordinatesTuple
+
+    cursorXStore.set(x)
+    cursorYStore.set(y)
+    return prevCursorStore.set([x, y])
+  }
+
+  // Otherwise, we're performing a draw routine & we can DRY the logic to create toVisit
+  const { drawModeStore } = stores
+  const currentVisited = getCurrentStoreValue<CanvasLike>(stores.visitedStore)
+  let newCursor: CoordinatesTuple = [
+    getCurrentStoreValue<number>(cursorXStore),
+    getCurrentStoreValue<number>(cursorYStore)
+  ]
+
+  if (name === 'commitFill') drawModeStore.set('fill')
+  if (name === 'commitPatternDraw' || name === 'commitInsertDraw') {
+    const { cw } = <InsertInstruction | PatternInstruction>arg
+    stores.cwStore.set(cw)
+  }
+
+  if (name === 'commitInsertDraw') {
+    const { length } = <InsertInstruction>arg
+
+    drawModeStore.set('insert')
+    stores.insertLengthStore.set(length)
+
+    /**
+     * @note Typecheck is to silence tsc, as empty array will never appear
+     * @todo Ensure insertDraw[1] always returns next cursor (assume length always >= 1)
+     */
+    const possibleCursor = getCurrentStoreValue<[unknown, CoordinatesTuple | []]>(stores.insertCoordinatesStore)[1]
+    if (possibleCursor.length === 0) throw new Error('Empty tuple received from InsertInstruction')
+
+    newCursor = [...possibleCursor]
+  }
+  if (name === 'commitPatternDraw') {
+    const { p1Length, p2Offset, pattern } = <PatternInstruction>arg
+
+    drawModeStore.set('pattern')
+    stores.patternOneLengthStore.set(p1Length)
+    stores.patternTwoOffsetStore.set(p2Offset)
+    stores.rawPatternStore.set(pattern)
+
+    /** @note See above typecheck comment in commitInsertDraw */
+    const possibleCursor = getCurrentStoreValue<[unknown, unknown, CoordinatesTuple | []]>(stores.patternCoordinatesStore)[2]
+    if (possibleCursor.length === 0) throw new Error('Empty tuple received from PatternInstruction')
+
+    newCursor = [...possibleCursor]
+  }
+
+  // Set visited
+  const toVisit = getCurrentStoreValue<CanvasLike>(stores.toVisitStore)
+  stores.visitedStore.set({...currentVisited, ...toVisit})
+
+  // Lastly, update the cursor position & rotation (is redundant for commitFill)
+  if (name === 'commitFill') return
+  const { directionStore, prevDirectionStore } = stores
+  const direction = getCurrentStoreValue<DirectionArrow>(directionStore)
+
+  cursorXStore.set(newCursor[0])
+  cursorYStore.set(newCursor[1])
+  prevCursorStore.set(newCursor) // Location of last write
+  prevDirectionStore.set(direction) // Location of last write
+  if (name === 'commitInsertDraw') stores.insertLengthStore.set(1) // Reinitialize
+  if (name === 'commitPatternDraw') stores.rawPatternStore.set('') // Reinitialize
+}
+
+/**
+ * Append to `currentSequence` and `currentInstructionBuffer`
+ *
+ * @todo Clean this up; At present we cannot write to currentBuffer with instructions, we still use raw strings
+ */
+export const appendSequences = (stores: ExecutableStores, toAppend: InstructionObject[]): void => {
+  const currentInstructions = stores.currentInstructionBufferStore
+  let buffer = getCurrentStoreValue<string[]>(currentInstructions)
+
+  // console.log('Will append:', toAppend)
+  // console.log('Instructions before:', buffer)
+  toAppend.forEach(obj => {
+    const latestInstruction = formatInstruction(obj) // Re-format until @todo solved
+    buffer = [...buffer, latestInstruction]
+
+    currentInstructions.set(buffer)
+    execInstruction(obj, stores)
+  })
+  // console.log('After:', buffer)
+}
