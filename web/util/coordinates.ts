@@ -59,26 +59,10 @@ export const getStrokeCells = (args: GetStrokeCellsParameters): CoordinatesTuple
 
   if (mode === 0) return [baseCell]
 
-  // Depending on rotation & already filled in squares, we will use only 2 surrounding coordinates
-  let inserted = 0
-  const orderedCoordinates = Object.entries(getSurroundingCoordinates(inputX, inputY)).sort((a, b) => {
-    const table = {
-      LEFT: ['UP', 'DOWN', 'RIGHT', 'LEFT'],
-      RIGHT: ['UP', 'DOWN', 'LEFT','RIGHT'],
-      UP: ['LEFT', 'RIGHT', 'DOWN', 'UP'],
-      DOWN: ['LEFT', 'RIGHT', 'UP', 'DOWN'],
-    }[dir]
-
-    return table.indexOf(a[0]) - table.indexOf(b[0])
-  })
-
-  const extraCells = orderedCoordinates.map(([, coords]) => {
-    if (inserted >= 2) return
-
-    const [x, y] = coords
+  // Logic: Fill all surrounding cells; Omitting the already  visited coords is for UX feedback
+  const extraCells = Object.values(getSurroundingCoordinates(inputX, inputY)).map(([x, y]) => {
     if (visited[`${x}:${y}`] === color) return // Skip if we've already filled it with same color
 
-    inserted++
     return [x, y] as const
   }).filter(Boolean)
 

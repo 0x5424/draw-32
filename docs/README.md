@@ -49,14 +49,12 @@ Then, for code contributions:
 
 Loose list of todos, written before the issue tracker was initialized:
 - [ ] (spec) Custom palette settings
-- [ ] (spec) Update implementation for `drawMode 1`; Fill 5 pixels (cursor+LDRU) `if cell.color != $color` (ie. Fill logic, but not recursive)
 - [ ] (spec) Global constants for all constructor-related variables (ie. cursor, rotation)
 - [ ] (bug) Attempting to fully undo an instruction sequence fails to remove the strokeMode header
 - [ ] (bug) Clearing the `insert` drawMode field will break all stores
 - [ ] (DX) Clean up type defns
 - [ ] (DX) Split up `stores.ts`
 - [ ] (DX) CI
-- [ ] (DX) Rename matrix -> guide/template (or similar)
 - [ ] (DX) New derived string stores for instruction sequences (currentSequence & pastSequences represented as `string[]`, `string[][]`)
 - [ ] (DX) Refactor a few derived stores to be writable & vise-versa (directionText, cursor)
 - [ ] (UX) Support larger canvas (~128x128)
