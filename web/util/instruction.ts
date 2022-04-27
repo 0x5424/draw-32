@@ -230,6 +230,7 @@ const throwInvalidBitstreamError = (stream: string, pc: number, toRead = 1): nev
  */
 type ParseInstructionArgs = [stream: string, pc?: number]
 export const discernInstructionName: (...a: ParseInstructionArgs) => [name: InstructionName, bitsRead: number] = (stream, pc) => {
+  if (pc === 0) return ['commitStrokeMode', 2]
   if (stream[pc] === '0') { // draw mode
     // pc + 1 is rotation
     if (stream[pc + 2] === '0') return ['commitPatternDraw', 3]

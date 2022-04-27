@@ -18,7 +18,7 @@
   const formatSequence = (ary: InstructionObject[]) => {
     if (!ary) return ''
     /** @todo Should use a dedicated store for allSequencesAsBinStringArray */
-    const binString = ary.map(obj => formatInstruction(obj)).join('')
+    const binString = ary.map(formatInstruction).join('')
     if (binString === '') return ''
 
     const hex = BigInt(`0b${binString}`).toString(16)
@@ -34,7 +34,7 @@
   /** Pop last instruction from `currentSequence` */
   const undoLastInstruction = () => {
     const lastInstructionRemoved = $currentInstructionBuffer.slice(0, $currentInstructionBuffer.length - 1).join('')
-    const newState = [...$pastSequences.map(ary => ary.map(obj =>formatInstruction(obj)).join('')), lastInstructionRemoved]
+    const newState = [...$pastSequences.map(ary => ary.map(formatInstruction).join('')), lastInstructionRemoved]
 
     performReset(executableStores, newState)
   }
@@ -48,7 +48,10 @@
 
   const toggleLoad = () => inEditMode = !inEditMode
 
-  const logState = () => console.log('INSTRUCTIONS:', $allSequences)
+  const logState = () => {
+    console.log('INSTRUCTIONS:', $allSequences)
+    console.log('INSTRUCTIONS (raw):', $allSequences.map(ary => ary.map(formatInstruction)))
+  }
 
   /* STORES (subscriptions) */
   $: value = `[\n${$allSequences.map(formatSequence).join(',\n')}\n]`

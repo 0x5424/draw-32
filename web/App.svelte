@@ -17,10 +17,10 @@
   import { EXAMPLE as BITMAP } from './bitmaps'
   import { parseBitmap } from './util/matrix'
   /* IMPORTS (stores) */
-  import { drawMode, matrix } from './stores'
+  import { drawMode, template } from './stores'
   /* DECLARATIONS (local state) */
   let initialized = false
-  $matrix = parseBitmap(...BITMAP) /** @todo Allow swapping/custom bitmaps */
+  $template = parseBitmap(...BITMAP) /** @todo Allow swapping/custom bitmaps */
   /* DECLARATIONS (local functions) */
   const initializeControls = (): void => { initialized = true }
   /* STORES (subscriptions) */
@@ -63,9 +63,9 @@
     <Instructions />
   </section>
 
-  {#key $matrix}
+  {#key $template}
     <section in:fade={{ easing }} class="canvas-container">
-      <Canvas matrix={$matrix} />
+      <Canvas matrix={$template} />
     </section>
   {/key}
 </main>

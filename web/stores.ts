@@ -7,7 +7,7 @@ import {
   PatternInstruction, InsertInstruction,
   parseInstructionStream, formatInstruction
 } from './util/instruction'
-import type { MatrixCell } from './util/matrix'
+import type { MatrixCell, MatrixLike } from './util/matrix'
 
 import {
   INCREMENTS,
@@ -35,7 +35,7 @@ export type DirectionArrow = '←' | '↓' | '→' | '↑'
 type RotationArrow ='↙' | '↘' | '↗' | '↖'
 export type RotationText ='UP_LEFT' | 'UP_RIGHT' | 'DOWN_LEFT' | 'DOWN_RIGHT'
 
-export const matrix: Writable<MatrixCell[][]> = writable([[]])
+export const template: Writable<MatrixLike> = writable([[]])
 
 export const cursorX: Writable<number> = writable(1)
 export const cursorY: Writable<number> = writable(1)
@@ -118,15 +118,14 @@ export const rawPattern: Writable<string> = (() => {
 })()
 
 /* Canvas info */
-type MatrixLike = MatrixCell[][]
 export type CanvasLike = Record<string, string>
 export const visited: Writable<CanvasLike> = writable({})
-export const canvas = derived<[Readable<MatrixLike>, Readable<CanvasLike>], CanvasLike>([matrix, visited], ([$matrix, $visited]) => {
+export const canvas = derived<[Readable<MatrixLike>, Readable<CanvasLike>], CanvasLike>([template, visited], ([$template, $visited]) => {
   // Output a new canvas with all visited cells set
   const out = {}
   const BG_COLOR = 'alpha' /** @todo Move to constant (hard-coded BACKGROUND_COLOR) */
 
-  $matrix.forEach(row => {
+  $template.forEach(row => {
     row.forEach(({ x, y }) => out[[x, y].join(':')] = $visited[[x, y].join(':')] || BG_COLOR)
   })
 
@@ -163,18 +162,20 @@ export const strokeCells = derived<StrokeCellsStore, CoordinatesTuple[]>([stroke
 
 /* Fill info */
 /** @todo Performance */
-type FillCellsStore = [Readable<CoordinatesTuple>, Readable<MatrixLike>, Readable<string>, Readable<CanvasLike>]
-const fillCells = derived<FillCellsStore, CanvasLike>([cursor, matrix, color, canvas], ([$cursor, $matrix, $color, $canvas]) => {
-  const maxHeight = $matrix.length
-  const maxWidth = $matrix[0].length
-  // Guard clause for uninitialized matrix
-  if (maxWidth === 0) return
+type FillCellsStore = [Readable<string>, Readable<CoordinatesTuple>, Readable<MatrixLike>, Readable<string>, Readable<CanvasLike>]
+const fillCells = derived<FillCellsStore, CanvasLike>([drawMode, cursor, template, color, canvas], ([$drawMode, $cursor, $template, $color, $canvas]) => {
+  if ($drawMode !== 'fill') return {}
+
+  const maxHeight = $template.length
+  const maxWidth = $template[0].length
+  // Guard clause for uninitialized template matrix
+  if (maxWidth === 0) return {}
 
   // Init output
   const out = {}
   const startColor: string = $canvas[$cursor.join(':')]
 
-  // Normalize cursor, as the matrix will use 0-indexed values
+  // Normalize cursor, as the template will use 0-indexed values
   const currentX = $cursor[0] - 1
   const currentY = $cursor[1] - 1
 
@@ -464,7 +465,7 @@ export const performReset = (stores: ExecutableStores, newState: string[] | fals
  */
 export const performLoad = (stores: ExecutableStores, toLoad: InstructionObject[][]): void => {
   // Init stores
-  const { pastSequencesStore: past } = stores
+  const { pastSequencesStore: past, currentInstructionBufferStore: current } = stores
   let pastState = getCurrentStoreValue<InstructionObject[][]>(past)
 
   // We must prepare new values for current/past _before_ calling the setter function, as we have no way to expand the Readable value from the store
@@ -472,8 +473,14 @@ export const performLoad = (stores: ExecutableStores, toLoad: InstructionObject[
     appendSequences(stores, sequence)
 
     // Only set new pastState if we're _NOT_ on the final iteration of our instruction set
-    if (toLoad.length - 1 !== i) pastState = [...pastState, sequence]
+    if (toLoad.length - 1 !== i) {
+      pastState = [...pastState, sequence]
+
+      // Then, also reset the current store for the next iteration
+      current.set([])
+    }
   })
+
   past.set(pastState)
 }
 

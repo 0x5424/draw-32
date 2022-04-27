@@ -13,7 +13,6 @@
   /** @todo Dynamic palette */
   /* DECLARATIONS (local functions) */
   const onFormSubmit = () => {
-    console.log($color)
     const newColorIndex = PALETTE.indexOf($color)
     if (newColorIndex < 0 || newColorIndex >= 16) return
 

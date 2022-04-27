@@ -5,6 +5,8 @@ export interface MatrixCell {
   y: number;
 }
 
+export type MatrixLike = MatrixCell[][]
+
 /**
  * Given a stream of bits, create a `width*width` matrix
  */
