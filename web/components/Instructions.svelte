@@ -51,6 +51,7 @@
   const logState = () => {
     console.log('INSTRUCTIONS:', $allSequences)
     console.log('INSTRUCTIONS (raw):', $allSequences.map(ary => ary.map(formatInstruction)))
+    console.log('INSTRUCTIONS (bin):', $allSequences.map(ary => ary.map(formatInstruction).join('')))
   }
 
   /* STORES (subscriptions) */

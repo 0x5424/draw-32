@@ -27,7 +27,8 @@
   }
 
   /* STORES (subscriptions) */
-  $: visitedColor = $visited[currentCell]
+  /** @note Hack for revisited cells, painted over in alpha; "Erased cells" */
+  $: visitedColor = $visited[currentCell] === 'alpha' ? false : $visited[currentCell]
   $: isCursor = $cursor.join(':') === currentCell
   $: isPatternOne = $drawMode === 'pattern' && $patternCoordinates[0].map(formatCell).includes(currentCell)
   $: isPatternTwo = $drawMode === 'pattern' && $patternCoordinates[1].map(formatCell).includes(currentCell)
