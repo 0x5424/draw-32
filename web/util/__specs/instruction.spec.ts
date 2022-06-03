@@ -113,9 +113,10 @@ describe('instruction.ts', () => {
   })
 
   describe('#discernInstructionName()', () => {
-    const run = (instr: string) => discernInstructionName(instr, 0)
+    const run = (instr: string, pc: number) => discernInstructionName(instr, pc)
 
     it('succeeds with valid arguments', () => {
+      const expectedStrokeMode = ['commitStrokeMode', 2]
       const expectedPatternDraw = ['commitPatternDraw', 3]
       const expectedInsertDraw = ['commitInsertDraw', 3]
 
@@ -124,13 +125,14 @@ describe('instruction.ts', () => {
       const expectedFill = ['commitFill', 4]
       const expectedJump = ['commitJump', 4]
 
-      expect(run('0*0')).to.eql(expectedPatternDraw)
-      expect(run('0*1')).to.eql(expectedInsertDraw)
+      expect(run('0*', 0)).to.eql(expectedStrokeMode)
+      expect(run('  0*0', 2)).to.eql(expectedPatternDraw)
+      expect(run('  0*1', 2)).to.eql(expectedInsertDraw)
 
-      expect(run('10')).to.eql(expectedRotate)
-      expect(run('110')).to.eql(expectedColor)
-      expect(run('1110')).to.eql(expectedFill)
-      expect(run('1111')).to.eql(expectedJump)
+      expect(run('  10', 2)).to.eql(expectedRotate)
+      expect(run('  110', 2)).to.eql(expectedColor)
+      expect(run('  1110', 2)).to.eql(expectedFill)
+      expect(run('  1111', 2)).to.eql(expectedJump)
     })
   })
 
